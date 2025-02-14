@@ -1,15 +1,17 @@
 import {
-  isRouteErrorResponse,
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
+    BrowserRouter,
+    isRouteErrorResponse,
+    Links,
+    Meta,
+    Outlet,
+    Scripts,
+    ScrollRestoration,
 } from "react-router";
 import {store} from "~/base/store";
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import {Provider} from "react-redux";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -44,9 +46,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-      <div>
-        <Outlet />
-      </div>
+      <Provider store={store}>
+              <div>
+                  <Outlet/>
+              </div>
+      </Provider>
   );
 }
 

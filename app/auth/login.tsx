@@ -18,6 +18,7 @@ export default function Login() {
 
     function submit(e : React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        e.stopPropagation();
 
         login({username, password});
     }
@@ -51,6 +52,7 @@ export default function Login() {
                             <Input
                                 id="password"
                                 name="password"
+                                type="password"
                                 required={true}
                                 label="Password"
                                 value={password}
