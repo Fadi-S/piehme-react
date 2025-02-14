@@ -38,6 +38,10 @@ const authSlice = createSlice({
     },
 });
 
+export const {setToken, setUsername, setUserId, clearAuth} = authSlice.actions;
+
+export { authSlice };
+
 interface LoginApiResponse {
     jwttoken?: string;
     username?: string;

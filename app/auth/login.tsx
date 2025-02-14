@@ -1,8 +1,9 @@
 import type {Route} from "./+types/login";
 import Input from "~/components/input";
 import Button from "~/components/button";
-import {useLoginMutation} from "~/features/authentication/authenticationApiSlice";
-import React from "react";
+import {useLoginMutation, setUsername as setUsernameReducer, setToken, setUserId} from "~/features/authentication/authenticationApiSlice";
+import React, {useEffect} from "react";
+import {useAppDispatch} from "~/base/hooks";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -12,16 +13,35 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Login() {
 
-    const [login, {isLoading, isSuccess, error}] = useLoginMutation();
+    const [login, {isLoading, isSuccess, isError, error, data}] = useLoginMutation();
     const [username, setUsername] = React.useState("");
     const [password, setPassword] = React.useState("");
 
-    function submit(e : React.FormEvent<HTMLFormElement>) {
+    const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+
+    const dispatch = useAppDispatch();
+
+    function submit(e: React.FormEvent) {
         e.preventDefault();
-        e.stopPropagation();
 
         login({username, password});
     }
+
+    useEffect(() => {
+        if (isSuccess && data) {
+            dispatch(setToken(data.jwttoken));
+            dispatch(setUsernameReducer(data.username));
+            dispatch(setUserId(data.userId));
+
+            setErrorMessage(null);
+
+            window.location.href = "/";
+        }
+        if(isError && error) {
+            // @ts-ignore
+            setErrorMessage(error.data?.message);
+        }
+    }, [isSuccess, isLoading]);
 
     return (
         <>
@@ -39,7 +59,7 @@ export default function Login() {
 
                 <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
                     <div className="bg-white px-6 py-12 shadow-sm sm:rounded-lg sm:px-12">
-                        <form onSubmit={submit} action="/login" method="POST" className="space-y-6">
+                        <form onSubmit={submit} className="space-y-6">
                             <Input
                                 id="username"
                                 name="username"
@@ -64,6 +84,8 @@ export default function Login() {
                                     {isLoading ? "Loading..." : "Sign In"}
                                 </Button>
                             </div>
+
+                            {errorMessage && <div className="text-red-600 text-sm/6">{errorMessage}</div>}
                         </form>
                     </div>
                 </div>

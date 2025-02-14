@@ -1,12 +1,13 @@
-import type { Action, ThunkAction } from "@reduxjs/toolkit"
+import {type Action, type ThunkAction} from "@reduxjs/toolkit"
 import { combineSlices, configureStore } from "@reduxjs/toolkit"
 import { setupListeners } from "@reduxjs/toolkit/query"
 // import { scoreSlice } from "../features/score/scoreSlice"
 // import { authenticationApiSlice } from "../features/quizzes/authenticationApiSlice"
-import { authenticationApiSlice } from "~/features/authentication/authenticationApiSlice";
+import { authenticationApiSlice, authSlice } from "~/features/authentication/authenticationApiSlice";
 
 const rootReducer = combineSlices(
-    authenticationApiSlice
+    authenticationApiSlice,
+    authSlice
 )
 export type RootState = ReturnType<typeof rootReducer>
 

@@ -1,15 +1,15 @@
 import {Navigate, Outlet} from "react-router";
 import {getFromLocalStorage} from "~/base/helpers";
 
-function AnonymousRoute () {
+function PrivateRoute () {
     const user = getFromLocalStorage('token');
-    return user ? <Navigate to="/" replace /> : <Outlet />;
+    return user ? <Outlet /> : <Navigate to="/login" replace />;
 }
 
-export default function LoginLayout() {
+export default function AppLayout() {
     return (
         <div>
-            <AnonymousRoute />
+            <PrivateRoute />
         </div>
     );
 }

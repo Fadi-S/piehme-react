@@ -1,1 +1,1 @@
-export const ROOT_URL = process.env.REACT_APP_SERVER_URL;
+export const ROOT_URL :string = import.meta.env.VITE_APP_SERVER_URL;
