@@ -1,4 +1,5 @@
 import React from "react";
+import If from "~/components/if";
 
 interface InputProps {
     id: string;
@@ -9,6 +10,8 @@ interface InputProps {
     label?: string;
     value?: string;
     onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    placeholder?: string;
+    className?: string;
 }
 
 const defaultProps: InputProps = {
@@ -21,12 +24,15 @@ export default function Input(props: InputProps) {
     props = {...defaultProps, ...props};
 
     return (
-        <div>
-            <label htmlFor={props.id} className="block text-sm/6 font-medium text-gray-900">
-                {props.label}
-            </label>
+        <div className={props.className}>
+            <If condition={!! props.label}>
+                <label htmlFor={props.id} className="block text-sm/6 font-medium text-gray-900">
+                    {props.label}
+                </label>
+            </If>
             <div className="mt-2">
                 <input
+                    placeholder={props.placeholder}
                     id={props.id}
                     name={props.name}
                     type={props.type}

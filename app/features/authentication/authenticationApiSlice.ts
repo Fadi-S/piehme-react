@@ -20,11 +20,11 @@ const authSlice = createSlice({
         },
         setUsername: (state, action) => {
             state.username = action.payload;
-            setToLocalStorage('username', JSON.stringify(action.payload));
+            setToLocalStorage('username', action.payload);
         },
         setUserId: (state, action) => {
             state.userId = action.payload;
-            setToLocalStorage('userId', JSON.stringify(action.payload));
+            setToLocalStorage('userId', action.payload);
         },
         clearAuth: (state) => {
             state.jwttoken = undefined;
