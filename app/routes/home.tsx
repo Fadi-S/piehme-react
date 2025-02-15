@@ -25,7 +25,7 @@ export default function Home() {
     const [search, setSearch] = React.useState(searchParams.get("search") ?? "");
     const debouncedSearchTerm = useDebounce(search, 100);
 
-    const {data: users, isLoading} = useGetUsersQuery({page, search: debouncedSearchTerm});
+    const {data: users, isLoading, refetch} = useGetUsersQuery({page, search: debouncedSearchTerm});
 
     useEffect(() => {
         const states: {search?:string} = {};
@@ -82,8 +82,8 @@ export default function Home() {
                             </Td>
                             <Td>
                                 <div className="flex flex-col space-y-3 items-center justify-center">
-                                    <CoinsButton mode="add" username={user.username} />
-                                    <CoinsButton mode="remove" username={user.username} />
+                                    <CoinsButton onFinished={refetch} mode="add" username={user.username} />
+                                    <CoinsButton onFinished={refetch} mode="remove" username={user.username} />
                                 </div>
                             </Td>
                             <Td className="relative py-5 pl-3 text-right text-sm font-medium whitespace-nowrap">

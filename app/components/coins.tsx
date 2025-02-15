@@ -8,9 +8,10 @@ import Input from "~/components/input";
 interface CoinsButtonProps {
     mode: "add" | "remove";
     username: string;
+    onFinished?: () => void;
 }
 
-export default function CoinsButton({mode, username} : CoinsButtonProps) {
+export default function CoinsButton({mode, username, onFinished} : CoinsButtonProps) {
     const [addCoins, {isLoading: isAddLoading}] = useAddCoinsMutation();
     const [removeCoins, {isLoading: isRemoveLoading}] = useRemoveCoinsMutation();
 
@@ -34,6 +35,10 @@ export default function CoinsButton({mode, username} : CoinsButtonProps) {
     useEffect(() => {
         if (!isAddLoading && !isRemoveLoading) {
             setOpen(false);
+
+            if (onFinished) {
+                onFinished();
+            }
         }
     }, [isAddLoading, isRemoveLoading]);
 
