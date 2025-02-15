@@ -34,7 +34,7 @@ export const usersApiSlice = createApi({
     tagTypes: ["Users"],
     endpoints: build => ({
         getUsers: build.query<Pagination<User>, PageRequest>({
-            query: (req : PageRequest) => {
+            query: (req: PageRequest) => {
                 let url = "ostaz/users";
                 const queryParams = [];
                 if (req.page) {
@@ -56,7 +56,33 @@ export const usersApiSlice = createApi({
 
         }),
 
+        getUser: build.query<User, { username: string }>({
+            query: ({username}) => `ostaz/users/${username}`,
+            providesTags: (_, __, {username}) => [{type: "Users", id: username}],
+        }),
+
+        addCoins: build.mutation<number, { username: string, coins: number }>({
+            query: ({username, coins}) => {
+                return {
+                    url: `ostaz/users/${username}/coins/add`,
+                    method: "POST",
+                    body: {coins},
+                };
+            },
+            invalidatesTags: (_, __, {username}) => [{type: "Users", id: username}],
+        }),
+
+        removeCoins: build.mutation<number, { username: string, coins: number }>({
+            query: ({username, coins}) => {
+                return {
+                    url: `ostaz/users/${username}/coins/remove`,
+                    method: "POST",
+                    body: {coins},
+                };
+            },
+            invalidatesTags: (_, __, {username}) => [{type: "Users", id: username}],
+        }),
     }),
 })
 
-export const { useGetUsersQuery } = usersApiSlice
+export const {useGetUsersQuery, useGetUserQuery, useAddCoinsMutation, useRemoveCoinsMutation} = usersApiSlice
