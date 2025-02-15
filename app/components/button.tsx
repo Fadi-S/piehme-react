@@ -32,13 +32,15 @@ export default function Button(props: ButtonProps) {
         'heavy-red': 'bg-red-600 hover:bg-red-700 focus-visible:outline-red-600 text-white',
     }[props.color!];
 
+    const disabledClass = props.disabled ? 'opacity-50 cursor-not-allowed' : '';
+
     return (
         <button
             form={props.form}
             type={props.type}
             disabled={props.disabled}
             onClick={props.onClick}
-            className={"flex justify-center rounded-md px-3 py-1.5 text-sm/6 font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2 " + colorClass + " " + props.width}
+            className={"flex justify-center rounded-md px-3 py-1.5 text-sm/6 font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2 " + colorClass + " " + props.width + " " + disabledClass}
         >
             {props.children}
         </button>

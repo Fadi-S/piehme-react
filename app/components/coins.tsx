@@ -12,8 +12,8 @@ interface CoinsButtonProps {
 }
 
 export default function CoinsButton({mode, username, onFinished} : CoinsButtonProps) {
-    const [addCoins, {isLoading: isAddLoading}] = useAddCoinsMutation();
-    const [removeCoins, {isLoading: isRemoveLoading}] = useRemoveCoinsMutation();
+    const [addCoins, {isLoading: isAddLoading, isSuccess: isAddSuccess}] = useAddCoinsMutation();
+    const [removeCoins, {isLoading: isRemoveLoading, isSuccess: isRemoveSuccess}] = useRemoveCoinsMutation();
 
     const [open, setOpen] = React.useState(false);
     const [coins, setCoins] = React.useState(0);
@@ -33,7 +33,7 @@ export default function CoinsButton({mode, username, onFinished} : CoinsButtonPr
 
 
     useEffect(() => {
-        if (!isAddLoading && !isRemoveLoading) {
+        if (!isAddLoading && !isRemoveLoading && isAddSuccess && isRemoveSuccess) {
             setOpen(false);
 
             if (onFinished) {
@@ -53,6 +53,7 @@ export default function CoinsButton({mode, username, onFinished} : CoinsButtonPr
                         <Button
                             form={`${username}-${mode}-form`}
                             type="submit"
+                            disabled={isAddLoading || isRemoveLoading}
                             color={mode === "add" ? 'heavy-green' : 'heavy-red'}
                         >
                             {(isAddLoading || isRemoveLoading) ? "Loading..." : verb}

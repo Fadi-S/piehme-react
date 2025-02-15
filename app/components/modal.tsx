@@ -1,6 +1,5 @@
 import React from 'react'
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
-import { CheckIcon } from '@heroicons/react/24/outline'
 import If from "~/components/if";
 
 interface ModalProps {

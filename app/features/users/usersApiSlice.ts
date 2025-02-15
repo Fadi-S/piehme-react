@@ -71,7 +71,6 @@ export const usersApiSlice = createApi({
             },
             invalidatesTags: (_, __, {username}) => [{type: "Users", id: username}],
         }),
-
         removeCoins: build.mutation<number, { username: string, coins: number }>({
             query: ({username, coins}) => {
                 return {
@@ -80,9 +79,17 @@ export const usersApiSlice = createApi({
                     body: {coins},
                 };
             },
-            invalidatesTags: (_, __, {username}) => [{type: "Users", id: username}],
+        }),
+        changePassword: build.mutation<void, { username:string, password: string }>({
+            query: ({username, password}) => {
+                return {
+                    url: `ostaz/users/${username}/change-password`,
+                    method: "POST",
+                    body: {password},
+                };
+            },
         }),
     }),
 })
 
-export const {useGetUsersQuery, useGetUserQuery, useAddCoinsMutation, useRemoveCoinsMutation} = usersApiSlice
+export const {useGetUsersQuery, useGetUserQuery, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation} = usersApiSlice

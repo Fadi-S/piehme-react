@@ -9,7 +9,6 @@ import {useGetUsersQuery} from "~/features/users/usersApiSlice";
 import type {User} from "~/features/users/usersApiSlice";
 import {useDebounce} from "~/base/helpers";
 import Loading from "~/components/loading";
-import {MinusIcon, PlusIcon} from "@heroicons/react/24/solid";
 import CoinsButton from "~/components/coins";
 
 export function meta({}: Route.MetaArgs) {
