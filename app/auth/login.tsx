@@ -1,7 +1,13 @@
 import type {Route} from "./+types/login";
 import Input from "~/components/input";
 import Button from "~/components/button";
-import {useLoginMutation, setUsername as setUsernameReducer, setToken, setUserId} from "~/features/authentication/authenticationApiSlice";
+import {
+    useLoginMutation,
+    setUsername as setUsernameReducer,
+    setToken,
+    setUserId,
+    setRole
+} from "~/features/authentication/authenticationApiSlice";
 import React, {useEffect} from "react";
 import {useAppDispatch} from "~/base/hooks";
 import Logo from "~/components/logo";
@@ -33,6 +39,7 @@ export default function Login() {
             dispatch(setToken(data.jwttoken));
             dispatch(setUsernameReducer(data.username));
             dispatch(setUserId(data.userId));
+            dispatch(setRole(data.role));
 
             setErrorMessage(null);
 

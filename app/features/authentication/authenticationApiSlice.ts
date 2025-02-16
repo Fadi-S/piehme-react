@@ -8,6 +8,7 @@ const initialState : LoginApiResponse = {
     jwttoken: getFromLocalStorage('token') || undefined,
     username: getFromLocalStorage('username') || undefined,
     userId: getFromLocalStorage('userId') || undefined,
+    role: getFromLocalStorage('userId') || undefined,
 };
 
 const authSlice = createSlice({
@@ -26,19 +27,25 @@ const authSlice = createSlice({
             state.userId = action.payload;
             setToLocalStorage('userId', action.payload);
         },
+        setRole: (state, action) => {
+            state.role = action.payload;
+            setToLocalStorage('role', action.payload);
+        },
         clearAuth: (state) => {
             state.jwttoken = undefined;
             state.username = undefined;
             state.userId = undefined;
+            state.role = undefined;
 
             removeFromLocalStorage('token');
             removeFromLocalStorage('user');
             removeFromLocalStorage('authorities');
+            removeFromLocalStorage('role');
         },
     },
 });
 
-export const {setToken, setUsername, setUserId, clearAuth} = authSlice.actions;
+export const {setToken, setUsername, setUserId, setRole, clearAuth} = authSlice.actions;
 
 export { authSlice };
 
@@ -46,6 +53,7 @@ interface LoginApiResponse {
     jwttoken?: string;
     username?: string;
     userId?: string;
+    role?: string;
 }
 
 interface LoginApiRequest {

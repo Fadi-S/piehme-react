@@ -9,9 +9,11 @@ import {
     XMarkIcon,
     PencilIcon,
     CogIcon,
-    DocumentCheckIcon
+    DocumentCheckIcon, PowerIcon
 } from '@heroicons/react/24/outline'
 import Logo from "~/components/logo";
+import {useDispatch} from "react-redux";
+import {clearAuth} from "~/features/authentication/authenticationApiSlice";
 
 function PrivateRoute () {
     const user = getFromLocalStorage('token');
@@ -33,6 +35,13 @@ export default function Example() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
 
     const username = getFromLocalStorage('username');
+    const dispatch = useDispatch();
+
+    function logout() {
+        dispatch(clearAuth());
+
+        window.location.href = '/login';
+    }
 
     useEffect(() => {
         setNavigation(navigation.map((item) => {
@@ -83,11 +92,21 @@ export default function Example() {
                                                                 'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold',
                                                             )}
                                                         >
-                                                            <item.icon aria-hidden="true" className="size-6 shrink-0" />
+                                                            <item.icon aria-hidden="true" className="size-6 shrink-0"/>
                                                             {item.name}
                                                         </a>
                                                     </li>
                                                 ))}
+
+                                                <li key="logout">
+                                                    <button
+                                                        onClick={logout}
+                                                        className='w-full text-gray-400 hover:bg-gray-800 hover:text-white group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold'
+                                                    >
+                                                        <PowerIcon aria-hidden="true" className="size-6 shrink-0" />
+                                                        Logout
+                                                    </button>
+                                                </li>
                                             </ul>
                                         </li>
                                     </ul>
@@ -102,7 +121,7 @@ export default function Example() {
                     {/* Sidebar component, swap this element with another sidebar if you like */}
                     <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6">
                         <div className="flex h-16 shrink-0 items-center">
-                            <Logo className="h-8 w-auto" />
+                            <Logo className="h-8 w-auto"/>
                         </div>
                         <nav className="flex flex-1 flex-col">
                             <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -119,11 +138,21 @@ export default function Example() {
                                                         'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold',
                                                     )}
                                                 >
-                                                    <item.icon aria-hidden="true" className="size-6 shrink-0" />
+                                                    <item.icon aria-hidden="true" className="size-6 shrink-0"/>
                                                     {item.name}
                                                 </a>
                                             </li>
                                         ))}
+
+                                        <li key="logout">
+                                            <button
+                                                onClick={logout}
+                                                className='w-full text-gray-400 hover:bg-gray-800 hover:text-white group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold'
+                                            >
+                                                <PowerIcon aria-hidden="true" className="size-6 shrink-0"/>
+                                                Logout
+                                            </button>
+                                        </li>
                                     </ul>
                                 </li>
 

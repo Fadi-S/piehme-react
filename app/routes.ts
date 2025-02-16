@@ -7,6 +7,7 @@ export default [
         route("/quizzes", "./routes/quizzes-index.tsx"),
         route("/attendance", "./routes/attendance-index.tsx"),
         route("/controls", "./routes/controls.tsx"),
+        route("/profile", "./routes/profile.tsx"),
     ]),
 
     layout("./auth/layout.tsx", [
