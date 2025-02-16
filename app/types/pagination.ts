@@ -16,6 +16,25 @@ export function createEmptyPagination<T>(data: T[]): Pagination<T> {
     };
 }
 
+export function queryParamsFromRequest(req: PageRequest): string {
+    const queryParams = [];
+    if (req.page) {
+        queryParams.push(`page=${req.page - 1}`);
+    }
+    if (req.size) {
+        queryParams.push(`size=${req.size}`);
+    }
+    if (req.search) {
+        queryParams.push(`search=${req.search}`);
+    }
+
+    if (queryParams.length === 0) {
+        return "";
+    }
+
+    return `?${queryParams.join("&")}`;
+}
+
 interface PageRequest {
     page?: number;
     size?: number;

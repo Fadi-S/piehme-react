@@ -1,17 +1,17 @@
 import {type Action, type ThunkAction} from "@reduxjs/toolkit"
 import { combineSlices, configureStore } from "@reduxjs/toolkit"
 import { setupListeners } from "@reduxjs/toolkit/query"
-// import { scoreSlice } from "../features/score/scoreSlice"
-// import { authenticationApiSlice } from "../features/quizzes/authenticationApiSlice"
 import { authenticationApiSlice, authSlice } from "~/features/authentication/authenticationApiSlice";
 import { usersApiSlice } from "~/features/users/usersApiSlice";
 import {attendanceApiSlice} from "~/features/attendance/attendanceApiSlice";
+import {controlsApiSlice} from "~/features/controls/controlsApiSlice";
 
 const rootReducer = combineSlices(
     authenticationApiSlice,
     authSlice,
     usersApiSlice,
-    attendanceApiSlice
+    attendanceApiSlice,
+    controlsApiSlice
 )
 export type RootState = ReturnType<typeof rootReducer>
 
@@ -24,6 +24,7 @@ export const makeStore = (preloadedState?: Partial<RootState>) => {
                 .concat(authenticationApiSlice.middleware)
                 .concat(usersApiSlice.middleware)
                 .concat(attendanceApiSlice.middleware)
+                .concat(controlsApiSlice.middleware)
         },
         preloadedState
     })

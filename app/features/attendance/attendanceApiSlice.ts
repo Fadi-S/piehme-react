@@ -1,7 +1,7 @@
 import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react"
 import {ROOT_URL} from "~/base/consts";
 import {getFromLocalStorage} from "~/base/helpers";
-import type {PageRequest, Pagination} from "~/types/pagination";
+import {type PageRequest, type Pagination, queryParamsFromRequest} from "~/types/pagination";
 
 interface Attendance {
     id: number;
@@ -34,7 +34,12 @@ export const attendanceApiSlice = createApi({
     tagTypes: ["Attendances", "Users"],
     endpoints: build => ({
         getAttendances: build.query<Pagination<Attendance>, PageRequest>({
-            query: () => `ostaz/attendances`,
+            query: (req: PageRequest) => {
+                let url = "ostaz/attendances";
+                url += queryParamsFromRequest(req);
+
+                return {url, method: "GET"};
+            },
         }),
 
         approveAttendance: build.mutation<string, { attendanceId: number, username:string }>({

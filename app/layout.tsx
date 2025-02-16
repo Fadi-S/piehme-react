@@ -28,7 +28,7 @@ export default function Example() {
     const [navigation, setNavigation] = useState([
         { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
         { name: 'Attendance', href: '/attendance', icon: DocumentCheckIcon, current: false },
-        { name: 'Mosab2at', href: '/quizzes', icon: PencilIcon, current: false },
+        // { name: 'Mosab2at', href: '/quizzes', icon: PencilIcon, current: false },
         { name: 'Controls', href: '/controls', icon: CogIcon, current: false },
     ]);
 
