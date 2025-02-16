@@ -1,6 +1,7 @@
 import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react"
 import {ROOT_URL} from "~/base/consts";
 import {getFromLocalStorage} from "~/base/helpers";
+import type {PageRequest, Pagination} from "~/types/pagination";
 
 interface Attendance {
     id: number;
@@ -8,6 +9,8 @@ interface Attendance {
     description: string;
     approved: boolean;
     coins: number;
+    userId?: number;
+    username?: string;
 }
 
 export type { Attendance };
@@ -30,7 +33,7 @@ export const attendanceApiSlice = createApi({
     reducerPath: "attendanceApi",
     tagTypes: ["Attendances", "Users"],
     endpoints: build => ({
-        getAttendances: build.query<Attendance, void>({
+        getAttendances: build.query<Pagination<Attendance>, PageRequest>({
             query: () => `ostaz/attendances`,
         }),
 

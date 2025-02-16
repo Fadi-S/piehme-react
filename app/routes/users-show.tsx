@@ -1,5 +1,5 @@
 import {useParams} from "react-router";
-import {type Attendance, useChangePasswordMutation, useGetUserQuery} from "~/features/users/usersApiSlice";
+import {useChangePasswordMutation, useGetUserQuery} from "~/features/users/usersApiSlice";
 import Loading from "~/components/loading";
 import Card from "~/components/card";
 import React, {useEffect} from "react";
@@ -10,7 +10,7 @@ import {Table, Td, Th} from "~/components/table";
 import {createEmptyPagination} from "~/types/pagination";
 import If from "~/components/if";
 import {CheckCircleIcon} from "@heroicons/react/24/outline";
-import {useApproveAttendanceMutation, useDeleteAttendanceMutation} from "~/features/attendance/attendanceApiSlice";
+import {useApproveAttendanceMutation, useDeleteAttendanceMutation, type Attendance} from "~/features/attendance/attendanceApiSlice";
 import {formatDate} from "~/base/helpers";
 
 export default function ShowUser() {

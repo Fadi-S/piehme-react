@@ -2,14 +2,7 @@ import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react"
 import {ROOT_URL} from "~/base/consts";
 import {getFromLocalStorage} from "~/base/helpers";
 import type {Pagination, PageRequest} from "~/types/pagination";
-
-interface Attendance {
-    id: number;
-    createdAt: string;
-    description: string;
-    approved: boolean;
-    coins: number;
-}
+import type {Attendance} from "~/features/attendance/attendanceApiSlice";
 
 interface User {
     id: number;
@@ -22,7 +15,7 @@ interface User {
     attendances?: Attendance[];
 }
 
-export type {User, Attendance};
+export type {User};
 
 // Define a service using a base URL and expected endpoints
 export const usersApiSlice = createApi({

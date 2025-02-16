@@ -1,0 +1,91 @@
+import type {Route} from "./+types/home";
+import Card from "~/components/card";
+import {Table, Td, Th} from "~/components/table";
+import React, {useEffect} from "react";
+import Loading from "~/components/loading";
+import {useSearchParams} from "react-router";
+import {
+    type Attendance,
+    useApproveAttendanceMutation, useDeleteAttendanceMutation,
+    useGetAttendancesQuery
+} from "~/features/attendance/attendanceApiSlice";
+import {formatDate} from "~/base/helpers";
+import If from "~/components/if";
+import {CheckCircleIcon} from "@heroicons/react/24/outline";
+import Button from "~/components/button";
+
+export function meta({}: Route.MetaArgs) {
+    return [
+        {title: "Attendances"},
+    ];
+}
+
+export default function AttendanceIndex() {
+    const [searchParams, _] = useSearchParams();
+
+    const page = parseInt(searchParams.get("page") ?? "1");
+
+    const {data: attendances, isLoading, refetch} = useGetAttendancesQuery({page});
+
+    const [approveAttendance, {isLoading: isApproveLoading, isSuccess: isApprovedSuccess}] = useApproveAttendanceMutation();
+    const [deleteAttendance, {isLoading: isDeleteLoading, isSuccess: isDeleteSuccess}] = useDeleteAttendanceMutation();
+
+    useEffect(() => {
+        if (isApprovedSuccess || isDeleteSuccess) refetch();
+    }, [isApproveLoading, isDeleteLoading]);
+
+    if (isLoading || !attendances) {
+        return <Loading />;
+    }
+
+    return (
+        <div>
+            <Card>
+                <Table
+                    header={(
+                        <tr>
+                            <Th first>Username</Th>
+                            <Th>Description</Th>
+                            <Th>Date</Th>
+                            <Th>Coins</Th>
+                            <Th>Approved</Th>
+                            <Th>Delete</Th>
+                        </tr>
+                    )}
+                    body={(attendance : Attendance) => (
+                        <tr key={attendance.id + "-" + (attendance.approved ? "1" : "0")}>
+                            <Td first>{attendance.username}</Td>
+                            <Td first>{attendance.description}</Td>
+                            <Td>{formatDate(attendance.createdAt)}</Td>
+                            <Td>${attendance.coins}</Td>
+                            <Td>
+                                <If
+                                    condition={! attendance.approved}
+                                    replacement={(
+                                        <div className="flex items-center">
+                                            <div className="flex items-center space-x-1 bg-green-800 text-green-100 rounded-md px-3 py-1.5 text-sm/6">
+                                                <span>Approved</span>
+                                                <CheckCircleIcon className="w-6 h-6" />
+                                            </div>
+                                        </div>
+                                    )}
+                                >
+                                    <Button width="w-auto" color="green" onClick={() => approveAttendance({attendanceId: attendance.id, username: attendance.username!})}>
+                                        Approve
+                                    </Button>
+                                </If>
+                            </Td>
+
+                            <Td>
+                                <Button width="w-auto" color="red" onClick={() => deleteAttendance({attendanceId: attendance.id, username: attendance.username!})}>
+                                    Delete
+                                </Button>
+                            </Td>
+                        </tr>
+                    )}
+                    pagination={attendances}
+                />
+            </Card>
+        </div>
+    );
+}
