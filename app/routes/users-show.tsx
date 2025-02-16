@@ -1,11 +1,17 @@
 import {useParams} from "react-router";
-import {useChangePasswordMutation, useGetUserQuery} from "~/features/users/usersApiSlice";
+import {type Attendance, useChangePasswordMutation, useGetUserQuery} from "~/features/users/usersApiSlice";
 import Loading from "~/components/loading";
 import Card from "~/components/card";
 import React, {useEffect} from "react";
 import CoinsButton from "~/components/coins";
 import Input from "~/components/input";
 import Button from "~/components/button";
+import {Table, Td, Th} from "~/components/table";
+import {createEmptyPagination} from "~/types/pagination";
+import If from "~/components/if";
+import {CheckCircleIcon} from "@heroicons/react/24/outline";
+import {useApproveAttendanceMutation, useDeleteAttendanceMutation} from "~/features/attendance/attendanceApiSlice";
+import {formatDate} from "~/base/helpers";
 
 export default function ShowUser() {
     const {username} = useParams<{ username: string }>();
@@ -16,6 +22,9 @@ export default function ShowUser() {
     const [password, setPassword] = React.useState("");
     const [changePassword, {isLoading: isPasswordLoading, isSuccess:isPasswordSuccess, error}] = useChangePasswordMutation();
     const [changePasswordMessage, setMessage] = React.useState({message: "", success: false});
+
+    const [approveAttendance, {isLoading: isApproveLoading, isSuccess: isApprovedSuccess}] = useApproveAttendanceMutation();
+    const [deleteAttendance, {isLoading: isDeleteLoading, isSuccess: isDeleteSuccess}] = useDeleteAttendanceMutation();
 
     function submitChangePassword(e: React.FormEvent) {
         e.preventDefault();
@@ -37,12 +46,16 @@ export default function ShowUser() {
         setTimeout(() => setMessage({message: "", success: false}), 5000);
     }, [isPasswordLoading]);
 
+    useEffect(() => {
+        if (isApprovedSuccess || isDeleteSuccess) refetch();
+    }, [isApproveLoading, isDeleteLoading]);
+
     if (isLoading || !user) {
         return <Loading/>;
     }
 
     return (
-        <div>
+        <div className="space-y-8">
             <Card>
                 <div className="px-4 sm:px-0">
                     <h3 className="text-base/7 font-semibold text-gray-900">User Information</h3>
@@ -56,6 +69,7 @@ export default function ShowUser() {
                         <Detail title="Username" value={user.username} />
 
                         <Detail title="Coins" value={`$${user.coins}`} />
+                        <Detail title="Rating" value={`${user.lineupRating}`} />
 
                         <Detail title="Actions">
                             <div className="flex space-x-4">
@@ -88,6 +102,51 @@ export default function ShowUser() {
                         </Detail>
                     </dl>
                 </div>
+            </Card>
+
+            <Card title="Attendance">
+                <Table
+                    header={(
+                        <tr>
+                            <Th first>Description</Th>
+                            <Th>Date</Th>
+                            <Th>Coins</Th>
+                            <Th>Approved</Th>
+                            <Th>Delete</Th>
+                        </tr>
+                    )}
+                    body={(attendance : Attendance) => (
+                        <tr key={attendance.id + "-" + (attendance.approved ? "1" : "0")}>
+                            <Td first>{attendance.description}</Td>
+                            <Td>{formatDate(attendance.createdAt)}</Td>
+                            <Td>${attendance.coins}</Td>
+                            <Td>
+                                <If
+                                    condition={! attendance.approved}
+                                    replacement={(
+                                        <div className="flex items-center">
+                                        <div className="flex items-center space-x-1 bg-green-800 text-green-100 rounded-md px-3 py-1.5 text-sm/6">
+                                            <span>Approved</span>
+                                            <CheckCircleIcon className="w-6 h-6" />
+                                        </div>
+                                        </div>
+                                    )}
+                                >
+                                    <Button width="w-auto" color="green" onClick={() => approveAttendance({attendanceId: attendance.id, username: user.username})}>
+                                        Approve
+                                    </Button>
+                                </If>
+                            </Td>
+
+                            <Td>
+                                <Button width="w-auto" color="red" onClick={() => deleteAttendance({attendanceId: attendance.id, username: user.username})}>
+                                    Delete
+                                </Button>
+                            </Td>
+                        </tr>
+                    )}
+                    pagination={createEmptyPagination(user.attendances!)}
+                />
             </Card>
         </div>
     );

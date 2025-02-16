@@ -12,14 +12,16 @@ interface CoinsButtonProps {
 }
 
 export default function CoinsButton({mode, username, onFinished} : CoinsButtonProps) {
-    const [addCoins, {isLoading: isAddLoading, isSuccess: isAddSuccess}] = useAddCoinsMutation();
-    const [removeCoins, {isLoading: isRemoveLoading, isSuccess: isRemoveSuccess}] = useRemoveCoinsMutation();
+    const [addCoins, {isLoading: isAddLoading, isSuccess: isAddSuccess, error: addError}] = useAddCoinsMutation();
+    const [removeCoins, {isLoading: isRemoveLoading, isSuccess: isRemoveSuccess, error: removeError }] = useRemoveCoinsMutation();
 
     const [open, setOpen] = React.useState(false);
     const [coins, setCoins] = React.useState(0);
 
     const text = mode === "add" ? "Add coins to" : "Remove coins from";
     const verb = mode === "add" ? "Add" : "Remove";
+
+    const [errorMessage, setErrorMessage] = React.useState("");
 
     function submit(e : React.FormEvent) {
         e.preventDefault();
@@ -33,12 +35,20 @@ export default function CoinsButton({mode, username, onFinished} : CoinsButtonPr
 
 
     useEffect(() => {
-        if (!isAddLoading && !isRemoveLoading && isAddSuccess && isRemoveSuccess) {
+        const isSuccess = mode === "add" ? isAddSuccess && !isAddLoading : isRemoveSuccess && !isRemoveLoading;
+        const error = mode === "add" ? addError : removeError;
+
+        if (isSuccess) {
             setOpen(false);
 
             if (onFinished) {
                 onFinished();
             }
+        }
+
+        if (error) {
+            // @ts-ignore
+            setErrorMessage(error.data.message);
         }
     }, [isAddLoading, isRemoveLoading]);
 
@@ -72,6 +82,8 @@ export default function CoinsButton({mode, username, onFinished} : CoinsButtonPr
                             label="Coins"
                         />
                     </div>
+
+                    {errorMessage && <p className="text-red-600 text-sm">{errorMessage}</p>}
                 </form>
             </Modal>
             <Button

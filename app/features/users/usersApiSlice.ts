@@ -3,6 +3,14 @@ import {ROOT_URL} from "~/base/consts";
 import {getFromLocalStorage} from "~/base/helpers";
 import type {Pagination, PageRequest} from "~/types/pagination";
 
+interface Attendance {
+    id: number;
+    createdAt: string;
+    description: string;
+    approved: boolean;
+    coins: number;
+}
+
 interface User {
     id: number;
     username: string;
@@ -11,9 +19,10 @@ interface User {
     lineupRating: number;
     imgLink: string;
     selectedIcon: string;
+    attendances?: Attendance[];
 }
 
-export type {User};
+export type {User, Attendance};
 
 // Define a service using a base URL and expected endpoints
 export const usersApiSlice = createApi({
@@ -89,7 +98,18 @@ export const usersApiSlice = createApi({
                 };
             },
         }),
+
+        createUser: build.mutation<void, { username:string, password: string }>({
+            query: ({username, password}) => {
+                return {
+                    url: `ostaz/users`,
+                    method: "POST",
+                    body: {username, password},
+                };
+            },
+            invalidatesTags: ["Users"],
+        }),
     }),
 })
 
-export const {useGetUsersQuery, useGetUserQuery, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation} = usersApiSlice
+export const {useGetUsersQuery, useGetUserQuery, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation} = usersApiSlice

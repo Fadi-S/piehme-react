@@ -25,14 +25,14 @@ export default function Modal({open, onClose, footer, title, children} : ModalPr
                         className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-lg sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95"
                     >
                         <div>
-                            <div className="text-center">
+                            <div>
                                 <If condition={!! title}>
-                                    <DialogTitle as="h3" className="text-base font-semibold text-gray-900">
+                                    <DialogTitle as="h3" className="mb-2 text-base text-center font-semibold text-gray-900">
                                         {title}
                                     </DialogTitle>
                                 </If>
 
-                                <div className="mt-2">
+                                <div>
                                     {children}
                                 </div>
                             </div>

@@ -5,11 +5,13 @@ import { setupListeners } from "@reduxjs/toolkit/query"
 // import { authenticationApiSlice } from "../features/quizzes/authenticationApiSlice"
 import { authenticationApiSlice, authSlice } from "~/features/authentication/authenticationApiSlice";
 import { usersApiSlice } from "~/features/users/usersApiSlice";
+import {attendanceApiSlice} from "~/features/attendance/attendanceApiSlice";
 
 const rootReducer = combineSlices(
     authenticationApiSlice,
     authSlice,
     usersApiSlice,
+    attendanceApiSlice
 )
 export type RootState = ReturnType<typeof rootReducer>
 
@@ -21,6 +23,7 @@ export const makeStore = (preloadedState?: Partial<RootState>) => {
             return getDefaultMiddleware()
                 .concat(authenticationApiSlice.middleware)
                 .concat(usersApiSlice.middleware)
+                .concat(attendanceApiSlice.middleware)
         },
         preloadedState
     })

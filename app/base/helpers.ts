@@ -37,6 +37,8 @@ export function useDebounce(value: string, delay: number): string {
 
     useEffect(() => {
         const handler = setTimeout(() => {
+            if (value === debouncedValue) return;
+            
             setDebouncedValue(value);
         }, delay);
 
@@ -46,4 +48,16 @@ export function useDebounce(value: string, delay: number): string {
     }, [value, delay]);
 
     return debouncedValue;
+}
+
+export function formatDate(date: string): string {
+    return new Date(date).toLocaleDateString("en-UK", {
+        year: "numeric",
+        month: "2-digit",
+        day: "numeric",
+        hour12: true,
+        hour: "2-digit",
+        minute: "2-digit",
+        weekday: "short",
+    });
 }

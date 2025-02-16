@@ -5,11 +5,12 @@ import Button from "~/components/button";
 import {Table, Td, Th} from "~/components/table";
 import React, {useEffect} from "react";
 import {useSearchParams} from "react-router";
-import {useGetUsersQuery} from "~/features/users/usersApiSlice";
+import {useCreateUserMutation, useGetUsersQuery} from "~/features/users/usersApiSlice";
 import type {User} from "~/features/users/usersApiSlice";
 import {useDebounce} from "~/base/helpers";
 import Loading from "~/components/loading";
 import CoinsButton from "~/components/coins";
+import Modal from "~/components/modal";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -26,11 +27,39 @@ export default function Home() {
 
     const {data: users, isLoading, refetch} = useGetUsersQuery({page, search: debouncedSearchTerm});
 
+    const [open, setOpen] = React.useState(false);
+    const [createUser, {isLoading: isCreatingUser, isSuccess: isCreateUserSuccess, error}] = useCreateUserMutation();
+
+    const [username, setUsername] = React.useState("");
+    const [password, setPassword] = React.useState("");
+    const [errorMessage, setErrorMessage] = React.useState("");
+
     useEffect(() => {
         const states: {search?:string} = {};
         if(debouncedSearchTerm) states.search = debouncedSearchTerm;
         setSearchParams(states);
     }, [debouncedSearchTerm]);
+
+    useEffect(() => {
+        if(isCreateUserSuccess) {
+            setOpen(false);
+            setUsername("");
+            setPassword("");
+            refetch();
+        } else if(error) {
+            // @ts-ignore
+            setErrorMessage(error.data.message);
+        }
+
+
+    }, [isCreatingUser]);
+
+    function submitCreateUser(e: React.FormEvent) {
+        e.preventDefault();
+
+        createUser({username, password});
+    }
+
 
     if (isLoading || !users) {
         return <Loading />;
@@ -50,7 +79,41 @@ export default function Home() {
                         />
                     </div>
                     <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-                        <Button type="button">Add user</Button>
+                        <Button onClick={() => setOpen(true)} type="button">Add user</Button>
+
+                        <Modal
+                            open={open}
+                            onClose={() => setOpen(false)}
+                            title="Add User"
+                            footer={(
+                                <div className="flex justify-between space-x-3">
+                                    <Button disabled={isCreatingUser} type="submit" form="create-user">
+                                        {isCreatingUser ? "Creating User..." : "Create User"}
+                                    </Button>
+
+                                    <Button color="gray" type="button" onClick={() => setOpen(false)}>
+                                        Cancel
+                                    </Button>
+                                </div>
+                            )}
+                        >
+                            <form onSubmit={submitCreateUser} className="space-y-3" id="create-user">
+                                <Input
+                                    label="Username"
+                                    id="add-username"
+                                    value={username}
+                                    onChange={e => setUsername(e.target.value)}
+                                />
+                                <Input
+                                    label="Password"
+                                    id="add-password"
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                />
+
+                                {errorMessage && <div className="text-red-600">{errorMessage}</div>}
+                            </form>
+                        </Modal>
                     </div>
                 </div>
 
