@@ -7,6 +7,13 @@ import Toggle from "~/components/toggle";
 import {useEffect} from "react";
 import {getFromLocalStorage} from "~/base/helpers";
 import If from "~/components/if";
+import type {Route} from "./+types/controls";
+
+export function meta({}: Route.MetaArgs) {
+    return [
+        {title: "Controls"},
+    ];
+}
 
 export default function Controls() {
 

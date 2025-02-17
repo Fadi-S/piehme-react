@@ -4,6 +4,13 @@ import {Table, Td, Th} from "~/components/table";
 import {type Icon, useGetAllIconsQuery} from "~/features/icons/iconsApiSlice";
 import {Link, useSearchParams} from "react-router";
 import React from "react";
+import type {Route} from "./+types/icons-index";
+
+export function meta({}: Route.MetaArgs) {
+    return [
+        {title: "All Icons"},
+    ];
+}
 
 export default function IconsIndex() {
     const [searchParams, _] = useSearchParams();

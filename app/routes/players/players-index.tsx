@@ -4,6 +4,13 @@ import {Table, Td, Th} from "~/components/table";
 import {type Player, useGetAllPlayersQuery} from "~/features/players/playersApiSlice";
 import {Link, useSearchParams} from "react-router";
 import React from "react";
+import type {Route} from "./+types/players-index";
+
+export function meta({}: Route.MetaArgs) {
+    return [
+        {title: "All Players"},
+    ];
+}
 
 export default function PlayersIndex() {
     const [searchParams, _] = useSearchParams();
