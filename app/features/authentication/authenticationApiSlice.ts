@@ -8,7 +8,7 @@ const initialState : LoginApiResponse = {
     jwttoken: getFromLocalStorage('token') || undefined,
     username: getFromLocalStorage('username') || undefined,
     userId: getFromLocalStorage('userId') || undefined,
-    role: getFromLocalStorage('userId') || undefined,
+    role: getFromLocalStorage('role') || undefined,
 };
 
 const authSlice = createSlice({

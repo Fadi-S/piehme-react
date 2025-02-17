@@ -48,32 +48,46 @@ export const iconsApiSlice = createApi({
             providesTags: ["Icons"],
         }),
 
-        getIcon: build.query<Icon, { name: string }>({
-            query: ({name}) => `icons/${name}`,
-            providesTags: (_, __, {name}) => [{type: "Icons", id: name}],
+        getIcon: build.query<Icon, { id: number }>({
+            query: ({id}) => `admin/icons/${id}`,
+            providesTags: (_, __, {id}) => [{type: "Icons", id: id}],
         }),
 
-        updateIcon: build.mutation<string, IconUpload>({
-            query: (icon : IconUpload) => {
+        updateIcon: build.mutation<string, { icon: IconUpload, id: number }>({
+            query: ({icon, id}) => {
+                let formData = new FormData();
+                formData.set("name", icon.name);
+                formData.set("price", icon.price.toString());
+                formData.set("available", icon.available ? "1" : "0");
+
+                if(icon.image)
+                    formData.set("image", icon.image as Blob);
+
                 return {
-                    url: `admin/icons/${icon.name}`,
+                    url: `admin/icons/${id}`,
                     method: "POST",
-                    body: icon,
+                    body: formData,
                     formData: true,
                     headers: {
                         "Content-Type": "multipart/form-data;"
                     }
                 };
             },
-            invalidatesTags: (_, __, {name}) => [{type: "Icons", id: name}],
+            invalidatesTags: (_, __, {id}) => [{type: "Icons", id: id}],
         }),
 
         createIcon: build.mutation<string, IconUpload>({
             query: (icon : IconUpload) => {
+                let formData = new FormData();
+                formData.set("name", icon.name);
+                formData.set("price", icon.price.toString());
+                formData.set("available", icon.available ? "1" : "0");
+                formData.set("image", icon.image as Blob);
+
                 return {
                     url: `admin/icons`,
                     method: "POST",
-                    body: icon,
+                    body: formData,
                     formData: true,
                     headers: {
                         "Content-Type": "multipart/form-data;"

@@ -9,7 +9,7 @@ export default [
 
         route("/icons", "./routes/icons/icons-index.tsx"),
         route("/icons/create", "./routes/icons/icons-create.tsx"),
-        route("/icons/:name/edit", "./routes/icons/icons-edit.tsx"),
+        route("/icons/:iconId/edit", "./routes/icons/icons-edit.tsx"),
 
 
         route("/controls", "./routes/controls.tsx"),

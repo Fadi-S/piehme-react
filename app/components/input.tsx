@@ -12,6 +12,7 @@ interface InputProps {
     onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder?: string;
     className?: string;
+    defaultValue?: string;
 }
 
 const defaultProps: InputProps = {
@@ -32,6 +33,7 @@ export default function Input(props: InputProps) {
             </If>
             <div className="mt-2">
                 <input
+                    defaultValue={props.defaultValue}
                     placeholder={props.placeholder}
                     id={props.id}
                     name={props.name}

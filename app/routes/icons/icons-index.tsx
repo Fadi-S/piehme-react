@@ -51,7 +51,7 @@ export default function IconsIndex() {
                                 </div>
                             </Td>
                             <Td>
-                                <a href={`/icons/${icon.name}/edit`} className="text-blue-600 hover:text-blue-900">
+                                <a href={`/icons/${icon.id}/edit`} className="text-blue-600 hover:text-blue-900">
                                     Edit<span className="sr-only">, {icon.name}</span>
                                 </a>
                             </Td>

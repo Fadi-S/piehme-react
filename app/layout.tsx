@@ -1,7 +1,7 @@
 import {Navigate, Outlet} from "react-router";
 import {getFromLocalStorage} from "~/base/helpers";
 import profilePicture from "~/images/defaultPicture.png";
-import {useEffect, useState} from 'react'
+import {useEffect, useRef, useState} from 'react'
 import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from '@headlessui/react'
 import {
     Bars3Icon,
@@ -14,6 +14,7 @@ import {
 import Logo from "~/components/logo";
 import {useDispatch} from "react-redux";
 import {clearAuth} from "~/features/authentication/authenticationApiSlice";
+import {useAppSelector} from "~/base/hooks";
 
 function PrivateRoute () {
     const user = getFromLocalStorage('token');
@@ -30,8 +31,11 @@ export default function Layout() {
         { name: 'Attendance', href: '/attendance', icon: DocumentCheckIcon, current: false },
         // { name: 'Mosab2at', href: '/quizzes', icon: PencilIcon, current: false },
         { name: 'Controls', href: '/controls', icon: CogIcon, current: false },
-        { name: 'Icons', href: '/icons', icon: IdentificationIcon, current: false },
     ]);
+
+    const role = useAppSelector((state) => state.auth.role);
+
+    const initialized = useRef(false);
 
     const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -45,6 +49,14 @@ export default function Layout() {
     }
 
     useEffect(() => {
+
+        if(! initialized.current) {
+            initialized.current = true;
+
+            if(role === "ADMIN") {
+                navigation.push({ name: 'Icons', href: '/icons', icon: IdentificationIcon, current: false });
+            }
+        }
         setNavigation(navigation.map((item) => {
             item.current = window.location.pathname === item.href;
             return item;
