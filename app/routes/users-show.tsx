@@ -14,6 +14,13 @@ import {useApproveAttendanceMutation, useDeleteAttendanceMutation, type Attendan
 import {formatDate} from "~/base/helpers";
 import Modal from "~/components/modal";
 import FileInput from "~/components/file-input";
+import type {Route} from "./+types/home";
+
+export function meta({}: Route.MetaArgs) {
+    return [
+        {title: "View User"},
+    ];
+}
 
 export default function ShowUser() {
     const {username} = useParams<{ username: string }>();
@@ -101,8 +108,8 @@ export default function ShowUser() {
                                        </Button>
                                    )}
                             >
-                                <form onSubmit={submitChangeImage} id="change-picture-form">
-                                    <FileInput id="change" files={image ? [image] : []} onChange={(files) => setImage(files[0])} />
+                                <form onSubmit={submitChangeImage} id="change-picture-form" encType="multipart/form-data">
+                                    <FileInput id="change" files={image ? [image] : []} onChange={(files) => setImage(files[0].file)} />
                                 </form>
 
                             </Modal>
