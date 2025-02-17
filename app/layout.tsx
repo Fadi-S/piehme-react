@@ -9,7 +9,7 @@ import {
     XMarkIcon,
     PencilIcon,
     CogIcon,
-    DocumentCheckIcon, PowerIcon
+    DocumentCheckIcon, PowerIcon, IdentificationIcon
 } from '@heroicons/react/24/outline'
 import Logo from "~/components/logo";
 import {useDispatch} from "react-redux";
@@ -24,12 +24,13 @@ function classNames(...classes: string[]) {
     return classes.filter(Boolean).join(' ')
 }
 
-export default function Example() {
+export default function Layout() {
     const [navigation, setNavigation] = useState([
         { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
         { name: 'Attendance', href: '/attendance', icon: DocumentCheckIcon, current: false },
         // { name: 'Mosab2at', href: '/quizzes', icon: PencilIcon, current: false },
         { name: 'Controls', href: '/controls', icon: CogIcon, current: false },
+        { name: 'Icons', href: '/icons', icon: IdentificationIcon, current: false },
     ]);
 
     const [sidebarOpen, setSidebarOpen] = useState(false)

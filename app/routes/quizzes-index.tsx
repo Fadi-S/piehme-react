@@ -1,8 +1,6 @@
 import {useSearchParams} from "react-router";
 import React, {useEffect} from "react";
 
-
-
 export default function QuizzesIndex() {
     const [searchParams, setSearchParams] = useSearchParams();
 
