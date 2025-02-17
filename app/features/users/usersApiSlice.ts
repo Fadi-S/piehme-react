@@ -10,7 +10,8 @@ interface User {
     coins: number;
     cardRating: number;
     lineupRating: number;
-    imgLink: string;
+    imageUrl: string;
+    imageKey: string;
     selectedIcon: string;
     attendances?: Attendance[];
 }
@@ -22,11 +23,15 @@ export const usersApiSlice = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: ROOT_URL,
         prepareHeaders: (headers, {}) => {
-            headers.set("Content-Type", "application/json");
-
             const token = getFromLocalStorage("token");
             if (token) {
                 headers.set("Authorization", `Bearer ${token}`);
+            }
+
+            if (headers.get("Content-Type") === "multipart/form-data;") {
+                headers.delete("Content-Type");
+            } else {
+                headers.set("Content-Type", "application/json");
             }
 
             return headers;
@@ -60,6 +65,24 @@ export const usersApiSlice = createApi({
             },
             invalidatesTags: (_, __, {username}) => [{type: "Users", id: username}],
         }),
+
+        changeImage: build.mutation<void, { username: string, image: File }>({
+            query: ({username, image}) => {
+                const formData = new FormData();
+                formData.append("image", image);
+                return {
+                    url: `ostaz/users/${username}/change-image`,
+                    method: "PUT",
+                    body: formData,
+                    formData: true,
+                    headers: {
+                        "Content-Type": "multipart/form-data;"
+                    }
+                };
+            },
+            invalidatesTags: (_, __, {username}) => [{type: "Users", id: username}],
+        }),
+
         removeCoins: build.mutation<number, { username: string, coins: number }>({
             query: ({username, coins}) => {
                 return {
@@ -92,4 +115,4 @@ export const usersApiSlice = createApi({
     }),
 })
 
-export const {useGetUsersQuery, useGetUserQuery, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation} = usersApiSlice
+export const {useGetUsersQuery, useGetUserQuery, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation} = usersApiSlice

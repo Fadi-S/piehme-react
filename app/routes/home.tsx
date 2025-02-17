@@ -131,7 +131,7 @@ export default function Home() {
                             <Td first>
                                 <div className="flex items-center">
                                     <div className="size-11 shrink-0">
-                                        <img alt="" src={user.imgLink} className="size-11 rounded-full"/>
+                                        <img alt="" src={user.imageUrl} className="size-11 rounded-full"/>
                                     </div>
                                     <div className="ml-4">
                                         <div className="font-medium text-gray-900">{user.username}</div>

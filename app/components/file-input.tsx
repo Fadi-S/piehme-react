@@ -15,6 +15,7 @@ interface FileInputProps {
     accept?: string[];
     multiple?: boolean;
     maxFiles?: number;
+    server?: string;
 
     onChange?: (files: any[]) => void;
     files?: any[];
@@ -32,6 +33,7 @@ export default function FileInput(props: FileInputProps) {
                 maxFiles={props.maxFiles}
                 name={props.name}
                 acceptedFileTypes={props.accept}
+                server={props.server}
                 labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
             />
         </div>

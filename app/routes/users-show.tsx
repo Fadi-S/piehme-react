@@ -1,8 +1,8 @@
 import {useParams} from "react-router";
-import {useChangePasswordMutation, useGetUserQuery} from "~/features/users/usersApiSlice";
+import {useChangeImageMutation, useChangePasswordMutation, useGetUserQuery} from "~/features/users/usersApiSlice";
 import Loading from "~/components/loading";
 import Card from "~/components/card";
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import CoinsButton from "~/components/coins";
 import Input from "~/components/input";
 import Button from "~/components/button";
@@ -12,6 +12,8 @@ import If from "~/components/if";
 import {CheckCircleIcon} from "@heroicons/react/24/outline";
 import {useApproveAttendanceMutation, useDeleteAttendanceMutation, type Attendance} from "~/features/attendance/attendanceApiSlice";
 import {formatDate} from "~/base/helpers";
+import Modal from "~/components/modal";
+import FileInput from "~/components/file-input";
 
 export default function ShowUser() {
     const {username} = useParams<{ username: string }>();
@@ -25,6 +27,17 @@ export default function ShowUser() {
 
     const [approveAttendance, {isLoading: isApproveLoading, isSuccess: isApprovedSuccess}] = useApproveAttendanceMutation();
     const [deleteAttendance, {isLoading: isDeleteLoading, isSuccess: isDeleteSuccess}] = useDeleteAttendanceMutation();
+
+    const [changeImage, {isLoading: isImageLoading, isSuccess: isImageSuccess}] = useChangeImageMutation();
+    const [openChangeImage, setChangeImage] = React.useState(false);
+    const [image, setImage] = useState<File | null>(null);
+
+    function submitChangeImage(e: React.FormEvent) {
+        e.preventDefault();
+
+        // @ts-ignore
+        changeImage({username, image});
+    }
 
     function submitChangePassword(e: React.FormEvent) {
         e.preventDefault();
@@ -46,6 +59,15 @@ export default function ShowUser() {
         setTimeout(() => setMessage({message: "", success: false}), 5000);
     }, [isPasswordLoading]);
 
+
+    useEffect(() => {
+        if(isImageSuccess) {
+            setChangeImage(false);
+            setImage(null);
+            refetch();
+        }
+    }, [isImageLoading]);
+
     useEffect(() => {
         if (isApprovedSuccess || isDeleteSuccess) refetch();
     }, [isApproveLoading, isDeleteLoading]);
@@ -63,7 +85,27 @@ export default function ShowUser() {
                 <div className="mt-6 border-t border-gray-100">
                     <dl className="divide-y divide-gray-100">
                         <Detail title="">
-                            <img src={user.imgLink} alt={`${user.username}'s image`} />
+                            <div className="flex items-start justify-start space-x-6">
+                                <img src={user.imageUrl} alt={`${user.username}'s image`} className="w-32" />
+
+                                <Button onClick={() => setChangeImage(true)} color="gray" width="w-auto mt-3">
+                                    Change Image
+                                </Button>
+                            </div>
+
+                            <Modal open={openChangeImage} onClose={() => setChangeImage(false)}
+                                   title="Change Image for User"
+                                   footer={(
+                                       <Button type="submit" form="change-picture-form" disabled={isImageLoading}>
+                                             {isImageLoading ? "Loading..." : "Save"}
+                                       </Button>
+                                   )}
+                            >
+                                <form onSubmit={submitChangeImage} id="change-picture-form">
+                                    <FileInput id="change" files={image ? [image] : []} onChange={(files) => setImage(files[0])} />
+                                </form>
+
+                            </Modal>
                         </Detail>
 
                         <Detail title="Username" value={user.username} />
