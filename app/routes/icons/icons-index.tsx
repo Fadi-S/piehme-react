@@ -2,7 +2,7 @@ import Loading from "~/components/loading";
 import Card from "~/components/card";
 import {Table, Td, Th} from "~/components/table";
 import {type Icon, useGetAllIconsQuery} from "~/features/icons/iconsApiSlice";
-import {useSearchParams} from "react-router";
+import {Link, useSearchParams} from "react-router";
 import React from "react";
 
 export default function IconsIndex() {
@@ -19,6 +19,13 @@ export default function IconsIndex() {
     return (
         <div>
             <Card>
+                <div className={"flex items-center justify-end"}>
+                    <Link to="/icons/create"
+                          className={"border px-3 py-1.5 rounded-md hover:bg-blue-200 text-blue-600 " +
+                              "hover:text-blue-900"}>
+                        Create Icon
+                    </Link>
+                </div>
                 <Table
                     header={(
                         <tr>
@@ -32,7 +39,7 @@ export default function IconsIndex() {
                     body={(icon: Icon) => (
                         <tr key={icon.id}>
                             <Td first>
-                                <img src={icon.imageUrl} className="w-24 h-auto" />
+                                <img src={icon.imageUrl} className="w-24 h-auto"/>
                             </Td>
                             <Td>
                                 <div className="text-gray-800">{icon.name}</div>
@@ -43,11 +50,11 @@ export default function IconsIndex() {
                             <Td>
                                 <div className="flex items-center">
 
-                                <div className={"px-3 py-1.5 rounded-lg " +
-                                    (icon.available ? "text-green-100 bg-green-700" : "text-red-100 bg-red-700")
-                                }>
-                                    {icon.available ? "Yes" : "No"}
-                                </div>
+                                    <div className={"px-3 py-1.5 rounded-lg " +
+                                        (icon.available ? "text-green-100 bg-green-700" : "text-red-100 bg-red-700")
+                                    }>
+                                        {icon.available ? "Yes" : "No"}
+                                    </div>
                                 </div>
                             </Td>
                             <Td>
