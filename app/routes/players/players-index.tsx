@@ -57,10 +57,10 @@ export default function PlayersIndex() {
                                 <div className="text-gray-800">${player.price}</div>
                             </Td>
                             <Td>
-                                <div className="text-gray-800">${player.position}</div>
+                                <div className="text-gray-800">{player.position}</div>
                             </Td>
                             <Td>
-                                <div className="text-gray-800">${player.rating}</div>
+                                <div className="text-gray-800">{player.rating}</div>
                             </Td>
                             <Td>
                                 <div className="flex items-center">

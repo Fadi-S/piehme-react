@@ -5,6 +5,7 @@ import Checkbox from "~/components/checkbox";
 import Button from "~/components/button";
 import FileInput from "~/components/file-input";
 import type {PlayerUpload} from "~/features/players/playersApiSlice";
+import Select from "~/components/select";
 
 interface PlayersFormProps {
     onSubmit: (player: PlayerUpload) => void;
@@ -20,6 +21,8 @@ export default function PlayersForm({onSubmit, isLoading, isSuccess, onSuccess, 
     const [image, setImage] = useState<File | null>(initialData?.image ?? null);
 
     const [errorMessage, setErrorMessage] = React.useState<string>("");
+
+    const positions = ["GK", "LB", "CB", "RB", "CM", "CAM", "LW", "ST", "RW"];
 
     useEffect(() => {
         if( isSuccess ) {
@@ -51,7 +54,15 @@ export default function PlayersForm({onSubmit, isLoading, isSuccess, onSuccess, 
                         <Input required id="name" name="name" label="Name" defaultValue={initialData?.name} />
                         <Input required id="price" name="price" label="Price" type="number" defaultValue={initialData?.price?.toString()} />
                         <Input required id="rating" name="rating" label="Rating" type="number" defaultValue={initialData?.rating?.toString()} />
-                        <Input required id="position" name="position" label="Position" defaultValue={initialData?.position} />
+                        <Select
+                            required
+                            id="position"
+                            name="position"
+                            label="Position"
+                            placeholder="-- Choose Position --"
+                            defaultValue={initialData?.position}
+                            options={positions.map((position) => ({value: position, label: position}))}
+                        />
                         <Checkbox id="available" name="available" label="Available" value={1} defaultChecked={initialData?.available} />
 
                         <FileInput
