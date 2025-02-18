@@ -11,6 +11,10 @@ export default [
         route("/icons/create", "./routes/icons/icons-create.tsx"),
         route("/icons/:iconId/edit", "./routes/icons/icons-edit.tsx"),
 
+        route("/prices", "./routes/prices/prices-index.tsx"),
+        route("/prices/create", "./routes/prices/prices-create.tsx"),
+        route("/prices/:priceId/edit", "./routes/prices/prices-edit.tsx"),
+
         route("/players", "./routes/players/players-index.tsx"),
         route("/players/create", "./routes/players/players-create.tsx"),
         route("/players/:playerId/edit", "./routes/players/players-edit.tsx"),

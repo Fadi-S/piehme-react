@@ -7,10 +7,9 @@ import {
     Bars3Icon,
     HomeIcon,
     XMarkIcon,
-    PencilIcon,
     CogIcon,
     UserGroupIcon,
-    DocumentCheckIcon, PowerIcon, IdentificationIcon
+    DocumentCheckIcon, PowerIcon, IdentificationIcon, CurrencyDollarIcon
 } from '@heroicons/react/24/outline'
 import Logo from "~/components/logo";
 import {useDispatch} from "react-redux";
@@ -32,6 +31,7 @@ export default function Layout() {
         { name: 'Attendance', href: '/attendance', icon: DocumentCheckIcon, current: false },
         // { name: 'Mosab2at', href: '/quizzes', icon: PencilIcon, current: false },
         { name: 'Controls', href: '/controls', icon: CogIcon, current: false },
+        { name: 'Prices', href: '/prices', icon: CurrencyDollarIcon, current: false },
     ]);
 
     const role = useAppSelector((state) => state.auth.role);
