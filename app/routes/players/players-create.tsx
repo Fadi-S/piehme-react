@@ -1,7 +1,7 @@
-import {useCreateIconMutation} from "~/features/icons/iconsApiSlice";
 import React from "react";
 import type {Route} from "./+types/players-create";
 import PlayersForm from "~/routes/players/players-form";
+import {useCreatePlayerMutation} from "~/features/players/playersApiSlice";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -11,14 +11,14 @@ export function meta({}: Route.MetaArgs) {
 
 export default function PlayersCreate() {
 
-    const [createIcon, {isLoading: isCreateLoading, isSuccess: isCreateSuccess, error}] = useCreateIconMutation();
+    const [createPlayer, {isLoading, isSuccess, error}] = useCreatePlayerMutation();
 
     return (
         <div>
             <PlayersForm
-                onSubmit={createIcon}
-                isLoading={isCreateLoading}
-                isSuccess={isCreateSuccess}
+                onSubmit={createPlayer}
+                isLoading={isLoading}
+                isSuccess={isSuccess}
                 onSuccess={() => window.location.href = "/players"}
                 title="Create Player"
                 error={error}
