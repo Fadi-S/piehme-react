@@ -46,7 +46,7 @@ export default function Home() {
             setUsername("");
             setPassword("");
             refetch();
-        } else if(error) {
+        } else if(error && error.data) {
             // @ts-ignore
             setErrorMessage(error.data.message);
         }
