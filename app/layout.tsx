@@ -9,6 +9,7 @@ import {
     XMarkIcon,
     CogIcon,
     UserGroupIcon,
+    BuildingLibraryIcon,
     DocumentCheckIcon, PowerIcon, IdentificationIcon, CurrencyDollarIcon
 } from '@heroicons/react/24/outline'
 import Logo from "~/components/logo";
@@ -57,6 +58,7 @@ export default function Layout() {
             if(role === "ADMIN") {
                 navigation.push({ name: 'Icons', href: '/icons', icon: IdentificationIcon, current: false });
                 navigation.push({ name: 'Players', href: '/players', icon: UserGroupIcon, current: false });
+                navigation.push({ name: 'Admins', href: '/admins', icon: BuildingLibraryIcon, current: false });
             }
         }
         setNavigation(navigation.map((item) => {
