@@ -48,10 +48,15 @@ export default function AdminsIndex() {
                                 <div className="text-gray-800">{admin.username}</div>
                             </Td>
                             <Td>
-                                <div className="text-gray-800">{admin.role}</div>
+                                <div className="flex items-center">
+                                    <div
+                                        className={"rounded-lg px-2 py-1.5 font-bold " + (admin.role === "ADMIN" ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800")}>
+                                        {admin.role.toLowerCase()}
+                                    </div>
+                                </div>
                             </Td>
                             <Td>
-                                <div className="text-gray-800">{admin.schoolYear.name}</div>
+                            <div className="text-gray-800">{admin.schoolYear.name}</div>
                             </Td>
                             <Td>
                                 <a href={`/admins/${admin.id}/edit`} className="text-blue-600 hover:text-blue-900">
