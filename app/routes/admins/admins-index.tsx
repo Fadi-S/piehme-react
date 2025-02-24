@@ -38,6 +38,7 @@ export default function AdminsIndex() {
                         <tr>
                             <Th first>Username</Th>
                             <Th>Role</Th>
+                            <Th>Osra</Th>
                             <Th></Th>
                         </tr>
                     )}
@@ -48,6 +49,9 @@ export default function AdminsIndex() {
                             </Td>
                             <Td>
                                 <div className="text-gray-800">{admin.role}</div>
+                            </Td>
+                            <Td>
+                                <div className="text-gray-800">{admin.schoolYear.name}</div>
                             </Td>
                             <Td>
                                 <a href={`/admins/${admin.id}/edit`} className="text-blue-600 hover:text-blue-900">

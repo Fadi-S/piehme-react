@@ -31,6 +31,7 @@ export default function AdminsEdit() {
         username: admin.username,
         role: admin.role,
         password: "",
+        schoolYear: admin.schoolYear.id,
     };
 
     return (

@@ -7,6 +7,12 @@ interface Admin {
     id: number;
     username: string;
     role: Role;
+    schoolYear: SchoolYear;
+}
+
+interface SchoolYear {
+    id: number;
+    name: string;
 }
 
 enum Role {
@@ -18,9 +24,10 @@ interface AdminForm {
     username: string;
     role: Role;
     password: string;
+    schoolYear: number;
 }
 
-export type { Admin, AdminForm };
+export type { Admin, AdminForm, SchoolYear };
 export {Role};
 
 // Define a service using a base URL and expected endpoints
@@ -39,11 +46,16 @@ export const adminsApiSlice = createApi({
         },
     }),
     reducerPath: "adminsApi",
-    tagTypes: ["Admins"],
+    tagTypes: ["Admins", "SchoolYears"],
     endpoints: build => ({
         getAllAdmins: build.query<Pagination<Admin>, PageRequest>({
             query: (req : PageRequest) => `admin/admins${queryParamsFromRequest(req)}`,
             providesTags: ["Admins"],
+        }),
+
+        getAllSchoolYears: build.query<SchoolYear[], void>({
+            query: () => `admin/schoolYears`,
+            providesTags: ["SchoolYears"],
         }),
 
         getAdmin: build.query<Admin, { id: number }>({
@@ -76,4 +88,4 @@ export const adminsApiSlice = createApi({
     }),
 })
 
-export const { useGetAllAdminsQuery, useGetAdminQuery, useUpdateAdminMutation, useCreateAdminMutation} = adminsApiSlice
+export const { useGetAllAdminsQuery, useGetAdminQuery, useGetAllSchoolYearsQuery, useUpdateAdminMutation, useCreateAdminMutation} = adminsApiSlice

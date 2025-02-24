@@ -2,8 +2,9 @@ import React, {useEffect} from "react";
 import Card from "~/components/card";
 import Input from "~/components/input";
 import Button from "~/components/button";
-import {type AdminForm, Role} from "~/features/admins/adminsApiSlice";
+import {type AdminForm, Role, type SchoolYear, useGetAllSchoolYearsQuery} from "~/features/admins/adminsApiSlice";
 import Select from "~/components/select";
+import Loading from "~/components/loading";
 
 interface AdminsFormProps {
     onSubmit: (admin: AdminForm) => void;
@@ -17,6 +18,9 @@ interface AdminsFormProps {
 
 export default function AdminsForm({onSubmit, isLoading, isSuccess, onSuccess, title, error, initialData}: AdminsFormProps) {
     const [errorMessage, setErrorMessage] = React.useState<string>("");
+
+    const {data: schoolYears, isLoading: isSchoolYearsLoading} = useGetAllSchoolYearsQuery();
+
 
     useEffect(() => {
         if( isSuccess ) {
@@ -34,8 +38,16 @@ export default function AdminsForm({onSubmit, isLoading, isSuccess, onSuccess, t
             username: formData.get("username") as string,
             role: formData.get("role") === Role.ADMIN ? Role.ADMIN : Role.OSTAZ,
             password: formData.get("password") as string,
+            schoolYear: 0,
         });
     }
+
+    if(isSchoolYearsLoading || !schoolYears) {
+        return <Loading />;
+    }
+
+    const schoolYearsOptions =
+        schoolYears.map((sy) => ({value: sy.id.toString(), label: sy.name}));
 
     return (
         <div>
@@ -48,6 +60,14 @@ export default function AdminsForm({onSubmit, isLoading, isSuccess, onSuccess, t
                             {value: Role.ADMIN, label: "Admin"},
                             {value: Role.OSTAZ, label: "Ostaz"},
                         ]} label="Role" defaultValue={initialData?.role} />
+
+                        <Select id="schoolYear"
+                                name="schoolYear"
+                                placeholder="-- Choose Osra --"
+                                options={schoolYearsOptions}
+                                label="Osra"
+                                defaultValue={initialData?.schoolYear?.toString()}
+                        />
 
                         <Input
                             id="password"
