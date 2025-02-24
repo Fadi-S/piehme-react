@@ -35,20 +35,22 @@ export default function Home() {
     const [errorMessage, setErrorMessage] = React.useState("");
 
     useEffect(() => {
-        const states: {search?:string} = {};
-        if(debouncedSearchTerm) states.search = debouncedSearchTerm;
+        const states: { search?: string } = {};
+        if (debouncedSearchTerm) states.search = debouncedSearchTerm;
         setSearchParams(states);
     }, [debouncedSearchTerm]);
 
     useEffect(() => {
-        if(isCreateUserSuccess) {
+        if (isCreateUserSuccess) {
             setOpen(false);
             setUsername("");
             setPassword("");
             refetch();
-        } else if(error && error.data) {
-            // @ts-ignore
-            setErrorMessage(error.data.message);
+        } else { // @ts-ignore
+            if (error && error.data) {
+                // @ts-ignore
+                setErrorMessage(error.data.message);
+            }
         }
 
 
@@ -62,7 +64,7 @@ export default function Home() {
 
 
     if (isLoading || !users) {
-        return <Loading />;
+        return <Loading/>;
     }
 
     return (
@@ -126,7 +128,7 @@ export default function Home() {
                         <Th><span className="sr-only">View</span></Th>
                     </tr>}
                     pagination={users!}
-                    body={(user : User) => (
+                    body={(user: User) => (
                         <tr key={user.id}>
                             <Td first>
                                 <div className="flex items-center">
@@ -144,8 +146,8 @@ export default function Home() {
                             </Td>
                             <Td>
                                 <div className="flex flex-col space-y-3 items-center justify-center">
-                                    <CoinsButton onFinished={refetch} mode="add" username={user.username} />
-                                    <CoinsButton onFinished={refetch} mode="remove" username={user.username} />
+                                    <CoinsButton onFinished={refetch} mode="add" username={user.username}/>
+                                    <CoinsButton onFinished={refetch} mode="remove" username={user.username}/>
                                 </div>
                             </Td>
                             <Td className="relative py-5 pl-3 text-right text-sm font-medium whitespace-nowrap">
