@@ -38,7 +38,7 @@ export default function AdminsForm({onSubmit, isLoading, isSuccess, onSuccess, t
             username: formData.get("username") as string,
             role: formData.get("role") === Role.ADMIN ? Role.ADMIN : Role.OSTAZ,
             password: formData.get("password") as string,
-            schoolYear: 0,
+            schoolYear: parseInt(formData.get("schoolYear") as string),
         });
     }
 
