@@ -13,6 +13,7 @@ interface User {
     imageUrl: string;
     imageKey: string;
     selectedIcon: string;
+    confirmed: Boolean;
     attendances?: Attendance[];
 }
 
@@ -102,6 +103,15 @@ export const usersApiSlice = createApi({
             },
         }),
 
+        confirm: build.mutation<void, { username:string }>({
+            query: ({username}) => {
+                return {
+                    url: `ostaz/users/${username}/confirm`,
+                    method: "POST",
+                };
+            },
+        }),
+
         createUser: build.mutation<void, { username:string, password: string }>({
             query: ({username, password}) => {
                 return {
@@ -115,4 +125,4 @@ export const usersApiSlice = createApi({
     }),
 })
 
-export const {useGetUsersQuery, useGetUserQuery, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation} = usersApiSlice
+export const {useGetUsersQuery, useGetUserQuery, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation} = usersApiSlice

@@ -5,12 +5,13 @@ import Button from "~/components/button";
 import {Table, Td, Th} from "~/components/table";
 import React, {useEffect} from "react";
 import {useSearchParams} from "react-router";
-import {useCreateUserMutation, useGetUsersQuery} from "~/features/users/usersApiSlice";
+import {useConfirmMutation, useCreateUserMutation, useGetUsersQuery} from "~/features/users/usersApiSlice";
 import type {User} from "~/features/users/usersApiSlice";
 import {useDebounce} from "~/base/helpers";
 import Loading from "~/components/loading";
 import CoinsButton from "~/components/coins";
 import Modal from "~/components/modal";
+import If from "~/components/if";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -29,6 +30,7 @@ export default function Home() {
 
     const [open, setOpen] = React.useState(false);
     const [createUser, {isLoading: isCreatingUser, isSuccess: isCreateUserSuccess, error}] = useCreateUserMutation();
+    const [confirmUser, {isLoading: isConfirmLoading, isSuccess: isConfirmSuccess}] = useConfirmMutation();
 
     const [username, setUsername] = React.useState("");
     const [password, setPassword] = React.useState("");
@@ -39,6 +41,12 @@ export default function Home() {
         if (debouncedSearchTerm) states.search = debouncedSearchTerm;
         setSearchParams(states);
     }, [debouncedSearchTerm]);
+
+    useEffect(() => {
+        if(isConfirmSuccess) {
+            refetch();
+        }
+    }, [isConfirmLoading]);
 
     useEffect(() => {
         if (isCreateUserSuccess) {
@@ -55,6 +63,12 @@ export default function Home() {
 
 
     }, [isCreatingUser]);
+
+    function submitConfirm(e: React.FormEvent, confirmUsername: string) {
+        e.preventDefault();
+
+        confirmUser({username: confirmUsername})
+    }
 
     function submitCreateUser(e: React.FormEvent) {
         e.preventDefault();
@@ -124,6 +138,7 @@ export default function Home() {
                         <Th>Name</Th>
                         <Th>Coins</Th>
                         <Th>Lienup Rating</Th>
+                        <Th>Confirm</Th>
                         <Th>Actions</Th>
                         <Th><span className="sr-only">View</span></Th>
                     </tr>}
@@ -148,6 +163,22 @@ export default function Home() {
                                 <div className="flex flex-col space-y-3 items-center justify-center">
                                     <CoinsButton onFinished={refetch} mode="add" username={user.username}/>
                                     <CoinsButton onFinished={refetch} mode="remove" username={user.username}/>
+                                </div>
+                            </Td>
+                            <Td>
+                                <div className="flex flex-col space-y-3 items-center justify-center">
+                                    <If
+                                        condition={!user.confirmed}
+                                        replacement={(
+                                            <div>
+                                                Confirmed
+                                            </div>
+                                        )}
+                                    >
+                                        <form onSubmit={(e) => submitConfirm(e, user.username)}>
+                                            <Button type="submit">Confirm</Button>
+                                        </form>
+                                    </If>
                                 </div>
                             </Td>
                             <Td className="relative py-5 pl-3 text-right text-sm font-medium whitespace-nowrap">
