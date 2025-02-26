@@ -17,7 +17,7 @@ import Loading from "~/components/loading";
 
 export function meta({}: Route.MetaArgs) {
     return [
-        {title: "Login"},
+        {title: "Register to Piehme Cup"},
     ];
 }
 
@@ -73,7 +73,7 @@ export default function RegisterUser() {
                             <Input
                                 id="username"
                                 name="username"
-                                required={true}
+                                required
                                 label="Username"
                                 value={username}
                                 onChange={e => setUsername(e.target.value)}
@@ -83,7 +83,7 @@ export default function RegisterUser() {
                                 id="password"
                                 name="password"
                                 type="password"
-                                required={true}
+                                required
                                 label="Password"
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
@@ -92,7 +92,8 @@ export default function RegisterUser() {
                             <Select
                                 id="schoolYear"
                                 name="schoolYear"
-                                required={true}
+                                required
+                                placeholder="--Select School Year--"
                                 label="Osra"
                                 options={
                                     schoolYears.map(schoolYear => ({
@@ -110,6 +111,7 @@ export default function RegisterUser() {
                             </div>
 
                             {errorMessage && <div className="text-red-600 text-sm/6">{errorMessage}</div>}
+                            {message && <div className="text-green-600 text-sm/6">{message}</div>}
                         </form>
                     </div>
                 </div>

@@ -34,7 +34,7 @@ export default function Select(props: SelectProps) {
                     onChange={props.onChange}
                     className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6"
                 >
-                    <option value="" disabled>{props.placeholder}</option>
+                    <option>{props.placeholder}</option>
                     {props.options.map((option) => (
                         <option key={option.value} value={option.value}>
                             {option.label}
