@@ -53,6 +53,16 @@ export const iconsApiSlice = createApi({
             providesTags: (_, __, {id}) => [{type: "Icons", id: id}],
         }),
 
+        deleteIcon: build.mutation<Icon, { id: number }>({
+            query: ({id}) => {
+                return {
+                    url: `admin/icons/${id}`,
+                    method: "DELETE",
+                };
+            },
+            invalidatesTags: (_, __, {id}) => [{type: "Icons", id: id}],
+        }),
+
         updateIcon: build.mutation<string, { icon: IconUpload, id: number }>({
             query: ({icon, id}) => {
                 let formData = new FormData();
@@ -100,4 +110,4 @@ export const iconsApiSlice = createApi({
     }),
 })
 
-export const { useGetAllIconsQuery, useGetIconQuery, useUpdateIconMutation, useCreateIconMutation} = iconsApiSlice
+export const { useGetAllIconsQuery, useGetIconQuery, useDeleteIconMutation, useUpdateIconMutation, useCreateIconMutation} = iconsApiSlice

@@ -1,10 +1,11 @@
 import Loading from "~/components/loading";
 import Card from "~/components/card";
 import {Table, Td, Th} from "~/components/table";
-import {type Player, useGetAllPlayersQuery} from "~/features/players/playersApiSlice";
+import {type Player, useGetAllPlayersQuery, useDeletePlayerMutation} from "~/features/players/playersApiSlice";
 import {Link, useSearchParams} from "react-router";
 import React from "react";
 import type {Route} from "./+types/players-index";
+import DeleteButton from "~/components/delete-button";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -17,7 +18,7 @@ export default function PlayersIndex() {
 
     const page = parseInt(searchParams.get("page") || "1");
 
-    const {data: players, isLoading} = useGetAllPlayersQuery({page});
+    const {data: players, isLoading, refetch} = useGetAllPlayersQuery({page});
 
     if (isLoading || !players) {
         return <Loading/>
@@ -73,9 +74,19 @@ export default function PlayersIndex() {
                                 </div>
                             </Td>
                             <Td>
-                                <a href={`/players/${player.id}/edit`} className="text-blue-600 hover:text-blue-900">
-                                    Edit<span className="sr-only">, {player.name}</span>
-                                </a>
+                                <div className="flex items-center space-x-3">
+                                    <a href={`/players/${player.id}/edit`}
+                                       className="text-blue-600 hover:text-blue-900">
+                                        Edit<span className="sr-only">, {player.name}</span>
+                                    </a>
+
+                                    <DeleteButton
+                                        useDeleteMutation={useDeletePlayerMutation}
+                                        onDelete={() => refetch()}
+                                        itemKey="id"
+                                        itemValue={player.id}
+                                    />
+                                </div>
                             </Td>
                         </tr>
                     )}

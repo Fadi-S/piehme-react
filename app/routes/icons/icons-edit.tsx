@@ -1,5 +1,5 @@
 import {
-    type IconUpload,
+    type IconUpload, useDeleteIconMutation,
     useGetIconQuery,
     useUpdateIconMutation
 } from "~/features/icons/iconsApiSlice";
@@ -8,6 +8,7 @@ import type {Route} from "./+types/icons-edit";
 import IconsForm from "~/routes/icons/icons-form";
 import {useParams} from "react-router";
 import Loading from "~/components/loading";
+import DeleteButton from "~/components/delete-button";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -36,6 +37,16 @@ export default function IconsEdit() {
 
     return (
         <div>
+            <div className="flex items-center justify-end mb-3">
+                <DeleteButton
+                    className="border border-red-600 hover:bg-red-100 rounded px-2 py-1.5"
+                    useDeleteMutation={useDeleteIconMutation}
+                    onDelete={() => window.location.href = "/icons"}
+                    itemKey="id"
+                    itemValue={icon.id}
+                />
+            </div>
+
             <IconsForm
                 onSubmit={(icon) => updateIcon({icon, id})}
                 isLoading={isLoading}

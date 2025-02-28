@@ -57,6 +57,16 @@ export const playersApiSlice = createApi({
             providesTags: (_, __, {id}) => [{type: "Players", id: id}],
         }),
 
+        deletePlayer: build.mutation<Player, { id: number }>({
+            query: ({id}) => {
+                return {
+                    url: `admin/players/${id}`,
+                    method: "DELETE",
+                };
+            },
+            invalidatesTags: (_, __, {id}) => [{type: "Players", id: id}],
+        }),
+
         updatePlayer: build.mutation<string, { player: PlayerUpload, id: number }>({
             query: ({player, id}) => {
                 let formData = new FormData();
@@ -108,4 +118,4 @@ export const playersApiSlice = createApi({
     }),
 })
 
-export const { useGetAllPlayersQuery, useGetPlayerQuery, useUpdatePlayerMutation, useCreatePlayerMutation} = playersApiSlice
+export const { useGetAllPlayersQuery, useGetPlayerQuery, useDeletePlayerMutation, useUpdatePlayerMutation, useCreatePlayerMutation} = playersApiSlice

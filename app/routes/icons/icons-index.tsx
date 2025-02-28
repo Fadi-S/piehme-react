@@ -1,10 +1,11 @@
 import Loading from "~/components/loading";
 import Card from "~/components/card";
 import {Table, Td, Th} from "~/components/table";
-import {type Icon, useGetAllIconsQuery} from "~/features/icons/iconsApiSlice";
+import {type Icon, useDeleteIconMutation, useGetAllIconsQuery} from "~/features/icons/iconsApiSlice";
 import {Link, useSearchParams} from "react-router";
 import React from "react";
 import type {Route} from "./+types/icons-index";
+import DeleteButton from "~/components/delete-button";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -65,9 +66,19 @@ export default function IconsIndex() {
                                 </div>
                             </Td>
                             <Td>
-                                <a href={`/icons/${icon.id}/edit`} className="text-blue-600 hover:text-blue-900">
-                                    Edit<span className="sr-only">, {icon.name}</span>
-                                </a>
+                                <div className="flex items-center space-x-3">
+                                    <a href={`/icons/${icon.id}/edit`}
+                                       className="text-blue-600 hover:text-blue-900">
+                                        Edit<span className="sr-only">, {icon.name}</span>
+                                    </a>
+
+                                    <DeleteButton
+                                        useDeleteMutation={useDeleteIconMutation}
+                                        onDelete={() => refetch()}
+                                        itemKey="id"
+                                        itemValue={icon.id}
+                                    />
+                                </div>
                             </Td>
                         </tr>
                     )}

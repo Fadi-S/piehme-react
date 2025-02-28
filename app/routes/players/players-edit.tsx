@@ -3,7 +3,13 @@ import type {Route} from "./+types/players-edit";
 import PlayersForm from "~/routes/players/players-form";
 import {useParams} from "react-router";
 import Loading from "~/components/loading";
-import {type PlayerUpload, useGetPlayerQuery, useUpdatePlayerMutation} from "~/features/players/playersApiSlice";
+import {
+    type PlayerUpload,
+    useDeletePlayerMutation,
+    useGetPlayerQuery,
+    useUpdatePlayerMutation
+} from "~/features/players/playersApiSlice";
+import DeleteButton from "~/components/delete-button";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -34,6 +40,16 @@ export default function PlayersEdit() {
 
     return (
         <div>
+            <div className="flex items-center justify-end mb-3">
+                <DeleteButton
+                    className="border border-red-600 hover:bg-red-100 rounded px-2 py-1.5"
+                    useDeleteMutation={useDeletePlayerMutation}
+                    onDelete={() => window.location.href="/players"}
+                    itemKey="id"
+                    itemValue={player.id}
+                />
+            </div>
+
             <PlayersForm
                 onSubmit={(player) => updatePlayer({player, id})}
                 isLoading={isLoading}
