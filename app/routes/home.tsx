@@ -73,6 +73,8 @@ export default function Home() {
     function submitCreateUser(e: React.FormEvent) {
         e.preventDefault();
 
+        setErrorMessage("");
+
         createUser({username, password});
     }
 
