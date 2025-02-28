@@ -122,7 +122,17 @@ export const usersApiSlice = createApi({
             },
             invalidatesTags: ["Users"],
         }),
+
+        deleteUser: build.mutation<void, { username:string }>({
+            query: ({username}) => {
+                return {
+                    url: `ostaz/users/${username}`,
+                    method: "DELETE",
+                };
+            },
+            invalidatesTags: (_, __, {username}) => [{type: "Users", id: username}],
+        }),
     }),
 })
 
-export const {useGetUsersQuery, useGetUserQuery, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation} = usersApiSlice
+export const {useGetUsersQuery, useGetUserQuery, useDeleteUserMutation, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation} = usersApiSlice

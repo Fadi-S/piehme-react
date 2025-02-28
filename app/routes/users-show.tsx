@@ -1,5 +1,10 @@
 import {useParams} from "react-router";
-import {useChangeImageMutation, useChangePasswordMutation, useGetUserQuery} from "~/features/users/usersApiSlice";
+import {
+    useChangeImageMutation,
+    useChangePasswordMutation,
+    useDeleteUserMutation,
+    useGetUserQuery
+} from "~/features/users/usersApiSlice";
 import Loading from "~/components/loading";
 import Card from "~/components/card";
 import React, {useEffect, useState} from "react";
@@ -15,6 +20,8 @@ import {formatDate} from "~/base/helpers";
 import Modal from "~/components/modal";
 import FileInput from "~/components/file-input";
 import type {Route} from "./+types/home";
+import {useDeleteIconMutation} from "~/features/icons/iconsApiSlice";
+import DeleteButton from "~/components/delete-button";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -86,6 +93,16 @@ export default function ShowUser() {
     return (
         <div className="space-y-8">
             <Card>
+                <div className="flex items-center justify-end">
+                    <DeleteButton
+                        className="border border-red-600 hover:bg-red-100 rounded px-2 py-1.5"
+                        useDeleteMutation={useDeleteUserMutation}
+                        onDelete={() => window.location.href = "/"}
+                        itemKey="username"
+                        itemValue={user.username}
+                    />
+                </div>
+
                 <div className="px-4 sm:px-0">
                     <h3 className="text-base/7 font-semibold text-gray-900">User Information</h3>
                 </div>
