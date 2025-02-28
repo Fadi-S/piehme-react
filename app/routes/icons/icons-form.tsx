@@ -60,7 +60,7 @@ export default function IconsForm({onSubmit, isLoading, isSuccess, onSuccess, ti
                     </div>
 
                     <Button type="submit" disabled={isLoading}>
-                        {isLoading ? "Creating..." : "Create"}
+                        {isLoading ? "Saving..." : "Save"}
                     </Button>
                 </form>
                 {errorMessage && <div className="text-red-600">{errorMessage}</div>}

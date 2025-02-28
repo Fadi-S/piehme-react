@@ -75,7 +75,7 @@ export default function PlayersForm({onSubmit, isLoading, isSuccess, onSuccess, 
                     </div>
 
                     <Button type="submit" disabled={isLoading}>
-                        {isLoading ? "Creating..." : "Create"}
+                        {isLoading ? "Saving..." : "Save"}
                     </Button>
                 </form>
                 {errorMessage && <div className="text-red-600">{errorMessage}</div>}
