@@ -10,6 +10,7 @@ interface User {
     coins: number;
     cardRating: number;
     lineupRating: number;
+    leaderboardBoolean: boolean;
     imageUrl: string;
     imageKey: string;
     selectedIcon: string;
@@ -132,7 +133,27 @@ export const usersApiSlice = createApi({
             },
             invalidatesTags: (_, __, {username}) => [{type: "Users", id: username}],
         }),
+
+        showInLeaderboard: build.mutation<number, { userId: number }>({
+            query: ({userId}) => {
+                return {
+                    url: `ostaz/users/leaderboard/show/${userId}`,
+                    method: "PATCH",
+                };
+            },
+            invalidatesTags: (_, __, {userId}) => [{type: "Users", id: userId}],
+        }),
+        
+        hideFromLeaderboard: build.mutation<number, { userId: number }>({
+            query: ({userId}) => {
+                return {
+                    url: `ostaz/users/leaderboard/hide/${userId}`,
+                    method: "PATCH",
+                };
+            },
+            invalidatesTags: (_, __, {userId}) => [{type: "Users", id: userId}],
+        }),
     }),
 })
 
-export const {useGetUsersQuery, useGetUserQuery, useDeleteUserMutation, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation} = usersApiSlice
+export const {useGetUsersQuery, useGetUserQuery, useDeleteUserMutation, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation, useShowInLeaderboardMutation, useHideFromLeaderboardMutation} = usersApiSlice;
