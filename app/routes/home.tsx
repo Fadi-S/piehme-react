@@ -5,13 +5,20 @@ import Button from "~/components/button";
 import {Table, Td, Th} from "~/components/table";
 import React, {useEffect} from "react";
 import {useSearchParams} from "react-router";
-import {useConfirmMutation, useCreateUserMutation, useGetUsersQuery} from "~/features/users/usersApiSlice";
+import {
+    useConfirmMutation,
+    useCreateUserMutation,
+    useCreateUsersBulkMutation,
+    useGetUsersQuery
+} from "~/features/users/usersApiSlice";
 import type {User} from "~/features/users/usersApiSlice";
 import {useDebounce} from "~/base/helpers";
 import Loading from "~/components/loading";
 import CoinsButton from "~/components/coins";
 import Modal from "~/components/modal";
 import If from "~/components/if";
+import Textarea from "~/components/textarea";
+import {ArrowDownTrayIcon} from "@heroicons/react/24/outline";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -29,7 +36,9 @@ export default function Home() {
     const {data: users, isLoading, refetch} = useGetUsersQuery({page, search: debouncedSearchTerm});
 
     const [open, setOpen] = React.useState(false);
+    const [openBulk, setOpenBulk] = React.useState(false);
     const [createUser, {isLoading: isCreatingUser, isSuccess: isCreateUserSuccess, error}] = useCreateUserMutation();
+    const [createUsersBulk, {isLoading: isCreatingUsersBulk, isSuccess: isCreateUsersBulkSuccess, error: errorBulk, data: usersPasswords}] = useCreateUsersBulkMutation();
     const [confirmUser, {isLoading: isConfirmLoading, isSuccess: isConfirmSuccess}] = useConfirmMutation();
 
     const [username, setUsername] = React.useState("");
@@ -60,9 +69,19 @@ export default function Home() {
                 setErrorMessage(error.data.message);
             }
         }
-
-
     }, [isCreatingUser]);
+
+    useEffect(() => {
+        if (isCreateUsersBulkSuccess) {
+            setUsername("");
+            refetch();
+        } else { // @ts-ignore
+            if (errorBulk && errorBulk.data) {
+                // @ts-ignore
+                setErrorMessage(errorBulk.data.message);
+            }
+        }
+    }, [isCreatingUsersBulk]);
 
     function submitConfirm(e: React.FormEvent, confirmUsername: string) {
         e.preventDefault();
@@ -79,6 +98,32 @@ export default function Home() {
     }
 
 
+    function mapUsersWithPasswordsForCSV(usersPasswords : Map<String, String>) {
+        let csv = "Username,Password\n";
+        for (let [username, password] of Object.entries(usersPasswords)) {
+            csv += `${username},${password}\n`;
+        }
+        return csv;
+    }
+
+    function downloadCSV() {
+        const element = document.createElement("a");
+        const file = new Blob([mapUsersWithPasswordsForCSV(usersPasswords!)], {type: "text/plain"});
+        element.href = URL.createObjectURL(file);
+        element.download = "users.csv";
+        document.body.appendChild(element); // Required for this to work in FireFox
+        element.click();
+    }
+
+    function submitCreateUserBulk(e: React.FormEvent) {
+        e.preventDefault();
+
+        setErrorMessage("");
+
+        createUsersBulk({usernames: username.split("\n")});
+    }
+
+
     if (isLoading || !users) {
         return <Loading/>;
     }
@@ -86,8 +131,8 @@ export default function Home() {
     return (
         <div>
             <Card>
-                <div className="sm:flex sm:items-center">
-                    <div className="w-full flex items-start">
+                <div className="sm:flex sm:items-center sm:justify-between">
+                    <div className="w-full sm:w-auto flex items-start">
                         <Input
                             id="search"
                             placeholder="Search"
@@ -96,8 +141,10 @@ export default function Home() {
                             onChange={e => setSearch(e.target.value)}
                         />
                     </div>
-                    <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+                    <div className="mt-4 sm:mt-0 sm:ml-16 flex items-center justify-between space-x-4">
                         <Button onClick={() => setOpen(true)} type="button">Add user</Button>
+
+                        <Button color="heavy-green" onClick={() => setOpenBulk(true)} type="button">Add users from list</Button>
 
                         <Modal
                             open={open}
@@ -132,6 +179,72 @@ export default function Home() {
                                 {errorMessage && <div className="text-red-600">{errorMessage}</div>}
                             </form>
                         </Modal>
+
+                        <Modal
+                            open={openBulk}
+                            onClose={() => setOpenBulk(false)}
+                            title="Add Users from List"
+                            footer={(
+                                <div className="flex justify-between space-x-3">
+                                    <Button disabled={isCreatingUsersBulk} type="submit" form="create-users-bulk">
+                                        {isCreatingUsersBulk ? "Creating Users..." : "Create Users"}
+                                    </Button>
+
+                                    <Button color="gray" type="button" onClick={() => setOpenBulk(false)}>
+                                        Cancel
+                                    </Button>
+                                </div>
+                            )}
+                        >
+                            {usersPasswords && (
+                                <div className="my-4">
+                                    <div className="text-green-600">Users Created Successfully</div>
+
+                                    <table className="w-full my-3">
+                                        <thead>
+                                        <tr className="border">
+                                            <th className="px-2 py-1.5 border">Username</th>
+                                            <th className="px-2 py-1.5 border">Password</th>
+                                        </tr>
+                                        </thead>
+
+                                        <tbody>
+                                        {Object.entries(usersPasswords).slice(0, 5).map(([username, password]) => (
+                                            <tr className="border" key={username}>
+                                                <td className="border px-2 py-1.5">{username}</td>
+                                                <td className="border px-2 py-1.5">{password}</td>
+                                            </tr>
+                                        ))}
+                                        </tbody>
+                                    </table>
+
+                                    {Object.entries(usersPasswords).length > 5 && (
+                                        <div className="text-gray-500 mb-2">Showing 5 users out
+                                            of {Object.entries(usersPasswords).length}</div>
+                                    )}
+
+                                    <Button color="heavy-green" type="button" onClick={downloadCSV}>
+                                        <div className="flex items-center">
+                                            <ArrowDownTrayIcon className="w-5 h-5 mr-2"/>
+                                            <span>Download CSV</span>
+                                        </div>
+                                    </Button>
+                                </div>
+                            )}
+
+                            <form onSubmit={submitCreateUserBulk} className="space-y-3" id="create-users-bulk">
+                                <Textarea
+                                    label="Usernames"
+                                    id="add-usernames-bulk"
+                                    value={username}
+                                    rows={10}
+                                    onChange={e => setUsername(e.target.value)}
+                                />
+
+                                {errorMessage && <div className="text-red-600">{errorMessage}</div>}
+                            </form>
+                        </Modal>
+
                     </div>
                 </div>
 
