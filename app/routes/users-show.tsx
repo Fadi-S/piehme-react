@@ -3,7 +3,9 @@ import {
     useChangeImageMutation,
     useChangePasswordMutation,
     useDeleteUserMutation,
-    useGetUserQuery
+    useGetUserQuery,
+    useHideFromLeaderboardMutation,
+    useShowInLeaderboardMutation
 } from "~/features/users/usersApiSlice";
 import Loading from "~/components/loading";
 import Card from "~/components/card";
@@ -46,6 +48,11 @@ export default function ShowUser() {
     const [openChangeImage, setChangeImage] = React.useState(false);
     const [image, setImage] = useState<File | null>(null);
 
+    const [showInLeaderboard, {isLoading: isShowInLeaderboardLoading, isSuccess: isShowInLeaderboardSuccess, reset: resetShowInLeaderboard}] = useShowInLeaderboardMutation();
+    const [hideFromLeaderboard, {isLoading: isHideFromLeaderboardLoading, isSuccess: isHideFromLeaderboardSuccess, reset: resetHideFromLeaderboard}] = useHideFromLeaderboardMutation();
+
+    const [leaderboardMessage, setLeaderboardMessage] = useState({message: "", success: false});
+
     function submitChangeImage(e: React.FormEvent) {
         e.preventDefault();
 
@@ -58,6 +65,16 @@ export default function ShowUser() {
 
         // @ts-ignore
         changePassword({username, password});
+    }
+
+    function toggleLeaderboard(e: React.ChangeEvent<HTMLInputElement>) {
+        if (user && user.id) {
+            if (e.target.checked) {
+                showInLeaderboard({userId: user.id});
+            } else {
+                hideFromLeaderboard({userId: user.id});
+            }
+        }
     }
 
     useEffect(() => {
@@ -73,7 +90,6 @@ export default function ShowUser() {
         setTimeout(() => setMessage({message: "", success: false}), 5000);
     }, [isPasswordLoading]);
 
-
     useEffect(() => {
         if(isImageSuccess) {
             setChangeImage(false);
@@ -85,6 +101,18 @@ export default function ShowUser() {
     useEffect(() => {
         if (isApprovedSuccess || isDeleteSuccess) refetch();
     }, [isApproveLoading, isDeleteLoading]);
+
+    useEffect(() => {
+        if (isShowInLeaderboardSuccess) {
+            setLeaderboardMessage({message: "User shown in leaderboard", success: true});
+            resetShowInLeaderboard();
+        } else if (isHideFromLeaderboardSuccess) {
+            setLeaderboardMessage({message: "User hidden from leaderboard", success: true});
+            resetHideFromLeaderboard();
+        }
+
+        setTimeout(() => setLeaderboardMessage({message: "", success: false}), 5000);
+    }, [isShowInLeaderboardSuccess, isHideFromLeaderboardSuccess]);
 
     if (isLoading || !user) {
         return <Loading/>;
@@ -166,6 +194,24 @@ export default function ShowUser() {
                                 </div>
                             )}
                         </Detail>
+
+                        <Detail title="Leaderboard Show/Hide">
+                            <div className="flex items-center">
+                                <input
+                                    id="leaderboard-checkbox"
+                                    type="checkbox"
+                                    className="form-checkbox h-4 w-4 text-blue-600"
+                                    defaultChecked={user.leaderboardBoolean}
+                                    onChange={toggleLeaderboard}
+                                />
+                            </div>
+
+                            {leaderboardMessage.message && (
+                                <div className={`mt-3 text-sm/6 ${leaderboardMessage.success ? "text-green-600" : "text-red-600"}`}>
+                                    {leaderboardMessage.message}
+                                </div>
+                            )}
+                        </Detail>
                     </dl>
                 </div>
             </Card>
@@ -227,5 +273,4 @@ function Detail({title, value, children} : {title: string, value?: string, child
             </dd>
         </div>
     );
-
 }
