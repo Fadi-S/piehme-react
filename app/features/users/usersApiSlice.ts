@@ -123,6 +123,17 @@ export const usersApiSlice = createApi({
             invalidatesTags: ["Users"],
         }),
 
+        createUsersBulk: build.mutation<Map<String, String>, { usernames: string[] }>({
+            query: ({usernames}) => {
+                return {
+                    url: `ostaz/users/bulk`,
+                    method: "POST",
+                    body: {users: usernames},
+                };
+            },
+            invalidatesTags: ["Users"],
+        }),
+
         deleteUser: build.mutation<void, { username:string }>({
             query: ({username}) => {
                 return {
@@ -135,4 +146,4 @@ export const usersApiSlice = createApi({
     }),
 })
 
-export const {useGetUsersQuery, useGetUserQuery, useDeleteUserMutation, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation} = usersApiSlice
+export const {useGetUsersQuery, useGetUserQuery, useCreateUsersBulkMutation, useDeleteUserMutation, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation} = usersApiSlice
