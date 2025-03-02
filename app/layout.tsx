@@ -10,7 +10,7 @@ import {
     CogIcon,
     UserGroupIcon,
     BuildingLibraryIcon,
-    DocumentCheckIcon, PowerIcon, IdentificationIcon, CurrencyDollarIcon
+    DocumentCheckIcon, PowerIcon, IdentificationIcon, CurrencyDollarIcon, PencilIcon
 } from '@heroicons/react/24/outline'
 import Logo from "~/components/logo";
 import {useDispatch} from "react-redux";
@@ -30,9 +30,7 @@ export default function Layout() {
     const [navigation, setNavigation] = useState([
         { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
         { name: 'Attendance', href: '/attendance', icon: DocumentCheckIcon, current: false },
-        // { name: 'Mosab2at', href: '/quizzes', icon: PencilIcon, current: false },
-        { name: 'Controls', href: '/controls', icon: CogIcon, current: false },
-        { name: 'Prices', href: '/prices', icon: CurrencyDollarIcon, current: false },
+        { name: 'Mosab2at', href: '/quizzes', icon: PencilIcon, current: false },
     ]);
 
     const role = useAppSelector((state) => state.auth.role);
@@ -59,6 +57,8 @@ export default function Layout() {
                 navigation.push({ name: 'Icons', href: '/icons', icon: IdentificationIcon, current: false });
                 navigation.push({ name: 'Players', href: '/players', icon: UserGroupIcon, current: false });
                 navigation.push({ name: 'Admins', href: '/admins', icon: BuildingLibraryIcon, current: false });
+                navigation.push({ name: 'Controls', href: '/controls', icon: CogIcon, current: false });
+                navigation.push({ name: 'Prices', href: '/prices', icon: CurrencyDollarIcon, current: false });
             }
         }
         setNavigation(navigation.map((item) => {

@@ -1,18 +1,14 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 import { ROOT_URL } from "~/base/consts";
+import {getFromLocalStorage} from "~/base/helpers";
 
-interface Group {
-  id: number
-  slug: string
-  name: string
-  quizzes: Quiz[]|null
-}
 
 interface Quiz {
   id: number
   name: string
   slug: string
-  group: Group
+  coins: number
+  publishedAt: Date
   questions: Question[]
 }
 
@@ -22,7 +18,8 @@ interface Question {
   picture: string|null
   type: QuestionType
   options: Option[]
-  answers: string[]|number[]
+  coins: number
+  answers: string[]|number[]|string
 }
 
 interface Option {
@@ -33,16 +30,10 @@ interface Option {
 }
 
 enum QuestionType {
-  Choose = 1,
-  Written = 2,
-}
-
-interface GroupsApiResponse {
-  groups: Group[]
-}
-
-interface GroupApiResponse {
-  group: Group
+  Choice = "Choice",
+  MultipleCorrectChoices = "MultipleCorrectChoices",
+  Reorder = "Reorder",
+  Written = "Written",
 }
 
 interface QuizApiResponse {
@@ -54,29 +45,65 @@ export const quizzesApiSlice = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: ROOT_URL,
     prepareHeaders: (headers, {}) => {
-      const key = "";
-      headers.set("Authorization", `Basic ${key}`);
-
       headers.set("Content-Type", "application/json");
+
+      const token = getFromLocalStorage("token");
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+
       return headers;
     },
   }),
   reducerPath: "quizzesApi",
   tagTypes: ["Quizzes"],
   endpoints: build => ({
-    getGroups: build.query<GroupsApiResponse, number>({
-      query: () => `/groups`,
-      providesTags: (result, error, id) => [{ type: "Quizzes", id }],
+    getQuizzes: build.query<Quiz[], void>({
+      query: () => `/ostaz/quizzes`,
+      providesTags: ["Quizzes"],
+      transformResponse: (response : Quiz[]) => {
+        return response.map((quiz) => {
+            return {
+                ...quiz,
+                publishedAt: new Date(quiz.publishedAt),
+            };
+        });
+      },
     }),
 
-    getGroup: build.query<GroupApiResponse, string>({
-      query: (slug) => `/groups/${slug}?withQuestions&withAnswers`,
+    getQuiz: build.query<Quiz, string>({
+      query: (slug) => `/ostaz/quizzes/${slug}`,
       providesTags: (result, error, id) => [{ type: "Quizzes", id }],
+      transformResponse: (quiz : Quiz) => {
+        return {
+          ...quiz,
+          publishedAt: new Date(quiz.publishedAt),
+        };
+      },
     }),
+
+    createQuiz: build.mutation<QuizApiResponse, FormData>({
+      query: (data) => ({
+        url: "/ostaz/quizzes",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Quizzes"],
+    }),
+
+    updateQuiz: build.mutation<QuizApiResponse, { data: FormData, quizId: number }>({
+      query: ({data, quizId}) => ({
+        url: `/ostaz/quizzes/${quizId}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ["Quizzes"],
+    }),
+
   }),
 })
 
-export const { useGetGroupsQuery, useGetGroupQuery} = quizzesApiSlice
+export const { useGetQuizQuery, useUpdateQuizMutation, useGetQuizzesQuery, useCreateQuizMutation} = quizzesApiSlice
 
 export type { Quiz, Question, Option };
 

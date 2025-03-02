@@ -10,6 +10,7 @@ import {playersApiSlice} from "~/features/players/playersApiSlice";
 import {pricesApiSlice} from "~/features/prices/pricesApiSlice";
 import {adminsApiSlice} from "~/features/admins/adminsApiSlice";
 import {userGuestApiSlice} from "~/features/users/userGuestApiSlice";
+import {quizzesApiSlice} from "~/features/quizzes/quizzesApiSlice";
 
 const rootReducer = combineSlices(
     authenticationApiSlice,
@@ -21,7 +22,8 @@ const rootReducer = combineSlices(
     playersApiSlice,
     pricesApiSlice,
     adminsApiSlice,
-    userGuestApiSlice
+    userGuestApiSlice,
+    quizzesApiSlice
 )
 export type RootState = ReturnType<typeof rootReducer>
 
@@ -30,7 +32,9 @@ export const makeStore = (preloadedState?: Partial<RootState>) => {
         reducer: rootReducer,
 
         middleware: getDefaultMiddleware => {
-            return getDefaultMiddleware()
+            return getDefaultMiddleware({
+                serializableCheck: false
+            })
                 .concat(authenticationApiSlice.middleware)
                 .concat(usersApiSlice.middleware)
                 .concat(userGuestApiSlice.middleware)
@@ -40,6 +44,7 @@ export const makeStore = (preloadedState?: Partial<RootState>) => {
                 .concat(playersApiSlice.middleware)
                 .concat(pricesApiSlice.middleware)
                 .concat(adminsApiSlice.middleware)
+                .concat(quizzesApiSlice.middleware)
         },
         preloadedState
     })
