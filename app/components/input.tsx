@@ -14,6 +14,7 @@ interface InputProps {
     className?: string;
     defaultValue?: string;
     dir?: string;
+    checked?: boolean;
 }
 
 const defaultProps: InputProps = {
@@ -51,8 +52,9 @@ export default function Input(props: InputProps) {
                     <div className="flex h-6 shrink-0 items-center">
                         <div className="group grid size-4 grid-cols-1">
                             <input
+                                checked={props.checked}
                                 dir={props.dir}
-                                defaultChecked={props.value === props.defaultValue}
+                                defaultChecked={props.defaultValue === undefined ? undefined : !!props.defaultValue}
                                 id={props.id}
                                 name={props.name}
                                 type={props.type}

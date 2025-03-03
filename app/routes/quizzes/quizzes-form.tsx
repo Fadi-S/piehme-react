@@ -18,6 +18,7 @@ import {restrictToVerticalAxis} from "@dnd-kit/modifiers";
 import {CSS} from "@dnd-kit/utilities";
 import Textarea from "~/components/textarea";
 import If from "~/components/if";
+import Select from "~/components/select";
 
 interface QuizzesFormProps {
     onSubmit: (quiz: FormData) => void;
@@ -81,7 +82,8 @@ export default function QuizzesForm({
                 const option : OptionForm = {
                     name: formData.get(`questions[${i}][options][${j}][name]`) as string,
                     order: j,
-                    clientId: ""
+                    clientId: "",
+                    correct: formData.get(`questions[${i}][options][${j}][correct]`) == "1"
                 };
 
                 question.options.push(option);
@@ -117,6 +119,12 @@ export default function QuizzesForm({
                 </Card>
 
                 <Questions questions={initialData?.questions}/>
+
+                {/*<div className="mt-6">*/}
+                {/*    <Button type="submit" disabled={isLoading}>*/}
+                {/*        {isLoading ? "Saving..." : "Save"}*/}
+                {/*    </Button>*/}
+                {/*</div>*/}
             </form>
         </div>
     )
@@ -146,6 +154,7 @@ interface OptionForm {
     order: number
     picture?: string
     clientId: string
+    correct: boolean
 }
 
 export type { QuizForm, QuestionForm, OptionForm };
@@ -158,15 +167,19 @@ interface QuestionsProps {
 function Questions(props: QuestionsProps) {
     const generateClientId = () => Math.random().toString(36).substring(2, 11);
 
+    const emptyOption = (order: number) => ({
+            name: "",
+            order: order,
+            clientId: generateClientId(),
+            correct: false
+    });
+
     const emptyQuestion: QuestionForm = {
         title: "",
         points: 0,
         type: QuestionType.Choice,
         correct_answers: [],
-        options: [
-            { name: "", order: 1, clientId: generateClientId() },
-            { name: "", order: 2, clientId: generateClientId() },
-        ]
+        options: [emptyOption(1), emptyOption(2)]
     }
 
     const [questions, setQuestions] = useState(() => {
@@ -193,11 +206,7 @@ function Questions(props: QuestionsProps) {
         const newQuestions = [...questions];
         const options = [...newQuestions[qIndex].options];
         const newOrder = options.length + 1;
-        options.push({
-            name: "",
-            order: newOrder,
-            clientId: generateClientId()
-        });
+        options.push(emptyOption(newOrder));
         newQuestions[qIndex].options = options;
 
         setQuestions(newQuestions);
@@ -227,7 +236,7 @@ function Questions(props: QuestionsProps) {
         setQuestions(newQuestions);
     }
 
-    function changeStateOptions(qIndex : number, oIndex : number, key : string, value : string)
+    function changeStateOptions(qIndex : number, oIndex : number, key : string, value : any)
     {
         const newQuestions = [...questions];
 
@@ -295,7 +304,7 @@ function Questions(props: QuestionsProps) {
                             className="col-span-2"
                             required
                             rows={2}
-                            id="title"
+                            id={"title-" + index}
                             name={`questions[${index}][title]`}
                             label="Title"
                             value={question.title}
@@ -303,17 +312,32 @@ function Questions(props: QuestionsProps) {
                         />
                         <Input
                             required
-                            id="coins"
+                            id={"coins-" + index}
                             name={`questions[${index}][points]`}
                             type="number"
                             label="Coins"
                             value={question.points.toString()}
                             onChange={(e) => changeState(index, "points", e.target.value)}
                         />
-                        <Input type="hidden" required id="correct_answers" name={`questions[${index}][correct_answers]`} defaultValue={JSON.stringify(question.correct_answers)} />
+                        <Select
+                            required
+                            id={"type-" + index}
+                            name={`questions[${index}][type]`}
+                            label="Question Type"
+                            onChange={(e) => changeState(index, "type", e.target.value)}
+                            value={question.type}
+                            placeholder={"-- Choose a type --"}
+                            options={[
+                                {label: "Choice", value: QuestionType.Choice},
+                                {label: "Multiple Correct Choices", value: QuestionType.MultipleCorrectChoices},
+                                {label: "Reorder", value: QuestionType.Reorder},
+                                {label: "Written", value: QuestionType.Written},
+                            ]}
+                        />
+                        <Input type="hidden" required id={"correct-answers-" + index} name={`questions[${index}][correct_answers]`} defaultValue={JSON.stringify(question.correct_answers)} />
 
                         <div className="col-span-2">
-                            <label className="mb-4 block text-sm/6 font-medium text-gray-900">
+                            <label className="mb-4 block text-sm/6 font-medium text-gray-600">
                                 Options
                             </label>
                             <DndContext
@@ -334,6 +358,7 @@ function Questions(props: QuestionsProps) {
                                             oIndex={oIndex}
                                             onRemove={() => removeOption(index, oIndex)}
                                             onChange={changeStateOptions}
+                                            qType={question.type}
                                         />
                                     ))}
                                 </SortableContext>
@@ -364,10 +389,11 @@ interface OptionItemProps {
     qIndex: number;
     oIndex: number;
     onRemove: () => void;
-    onChange: (qIndex:number, oIndex:number, key:string, value:string) => void;
+    onChange: (qIndex:number, oIndex:number, key:string, value:any) => void;
+    qType: QuestionType;
 }
 
-function OptionItem({option, qIndex, oIndex, onRemove, onChange}: OptionItemProps) {
+function OptionItem({option, qIndex, oIndex, onRemove, onChange, qType}: OptionItemProps) {
     const {attributes, listeners, setNodeRef, transform, transition } = useSortable({
         id: option.clientId,
     });
@@ -378,10 +404,12 @@ function OptionItem({option, qIndex, oIndex, onRemove, onChange}: OptionItemProp
     };
 
     return (
-        <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="mb-2">
+        <div ref={setNodeRef} style={style} className="mb-2">
             <div className="grid grid-cols-12 gap-3">
                 <div className="col-span-1 self-center">
-                    <Bars2Icon className="h-5 w-5 cursor-move" />
+                    <Bars2Icon
+                        {...attributes} {...listeners}
+                        className="h-5 w-5 cursor-move" />
                 </div>
                 <Input
                     required
@@ -393,14 +421,15 @@ function OptionItem({option, qIndex, oIndex, onRemove, onChange}: OptionItemProp
                     className="flex-grow col-span-11 sm:col-span-8"
                 />
                 <div className="col-span-8 sm:col-span-2">
-                    <If condition={true}>
+                    <If condition={qType === QuestionType.Choice || qType === QuestionType.MultipleCorrectChoices}>
                         <Input
                             required
                             id={`questions[${qIndex}][options][${oIndex}][correct]`}
                             type="checkbox"
                             value="1"
                             label="Is Correct"
-                            onChange={(e) => onChange(qIndex, oIndex, "checked", e.target.value)}
+                            checked={option.correct}
+                            onChange={(e) => onChange(qIndex, oIndex, "correct", e.target.checked)}
                         />
                     </If>
                 </div>

@@ -1,7 +1,4 @@
-import {
-    useGetQuizQuery,
-    useUpdateQuizMutation
-} from "~/features/quizzes/quizzesApiSlice";
+import {type Option, QuestionType, useGetQuizQuery, useUpdateQuizMutation} from "~/features/quizzes/quizzesApiSlice";
 import React from "react";
 import type {Route} from "./+types/quizzes-edit";
 import QuizzesForm, {type QuizForm} from "~/routes/quizzes/quizzes-form";
@@ -26,6 +23,14 @@ export default function QuizzesEdit() {
         return <Loading />;
     }
 
+    function isOptionCorrect(option: Option, qType: QuestionType, answers: number[]|string[]|string): boolean {
+        if(qType === QuestionType.Choice || qType === QuestionType.MultipleCorrectChoices) {
+            return (answers as number[]).includes(option.order);
+        }
+
+        return false;
+    }
+
     const initial : QuizForm = {
         id: quiz.id,
         name: quiz.name,
@@ -43,6 +48,7 @@ export default function QuizzesEdit() {
                         name: option.name,
                         order: option.order,
                         clientId: Math.random().toString(36).substring(7),
+                        correct: isOptionCorrect(option, question.type, question.answers),
                     };
                 }),
             };
