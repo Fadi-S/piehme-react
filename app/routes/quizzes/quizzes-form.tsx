@@ -492,16 +492,18 @@ function OptionItem({option, qIndex, oIndex, onRemove, onChange, qType, uploadUr
                     </Button>
                 </div>
 
-                <div className="col-span-12">
-                    <FileInputUpload
-                        id={`questions[${qIndex}][options][${oIndex}][picture]`}
-                        name={`questions[${qIndex}][options][${oIndex}][picture]`}
-                        uploadUrl={uploadUrl}
-                        onUpload={(path, url) => onChange(qIndex, oIndex, "picture", path)}
-                        onDelete={() => onChange(qIndex, oIndex, "picture", "removed")}
-                        picture={option.picture}
-                    />
-                </div>
+                <If condition={qType !== QuestionType.Written}>
+                    <div className="col-span-12">
+                        <FileInputUpload
+                            id={`questions[${qIndex}][options][${oIndex}][picture]`}
+                            name={`questions[${qIndex}][options][${oIndex}][picture]`}
+                            uploadUrl={uploadUrl}
+                            onUpload={(path, url) => onChange(qIndex, oIndex, "picture", path)}
+                            onDelete={() => onChange(qIndex, oIndex, "picture", "removed")}
+                            picture={option.picture}
+                        />
+                    </div>
+                </If>
             </div>
             <hr className="my-5 border-gray-200"/>
         </div>
