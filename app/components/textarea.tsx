@@ -12,11 +12,13 @@ interface TextAreaProps {
     className?: string;
     defaultValue?: string;
     rows?: number;
+    dir?: string;
 }
 
 const defaultProps: TextAreaProps = {
     id: 'input-' + Math.random().toString(36).substring(7),
     rows: 3,
+    dir: 'auto',
 }
 
 
@@ -32,6 +34,7 @@ export default function Textarea(props: TextAreaProps) {
             </If>
             <div className="mt-2">
                 <textarea
+                    dir={props.dir}
                     defaultValue={props.defaultValue}
                     placeholder={props.placeholder}
                     id={props.id}

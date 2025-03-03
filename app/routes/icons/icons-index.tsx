@@ -75,8 +75,8 @@ export default function IconsIndex() {
                                     <DeleteButton
                                         useDeleteMutation={useDeleteIconMutation}
                                         onDelete={() => refetch()}
-                                        itemKey="id"
-                                        itemValue={icon.id}
+                                        itemKey="name"
+                                        itemValue={icon.name}
                                     />
                                 </div>
                             </Td>

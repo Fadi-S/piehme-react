@@ -32,6 +32,7 @@ export default function QuizzesEdit() {
         published_at: quiz.publishedAt.toISOString(),
         questions: quiz.questions.map((question) => {
             return {
+                id: question.id,
                 title: question.title,
                 points: question.coins,
                 correct_answers: question.answers,
@@ -41,6 +42,7 @@ export default function QuizzesEdit() {
                         id: option.id,
                         name: option.name,
                         order: option.order,
+                        clientId: Math.random().toString(36).substring(7),
                     };
                 }),
             };

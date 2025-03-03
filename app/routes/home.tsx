@@ -250,6 +250,7 @@ export default function Home() {
 
                 <Table
                     header={<tr>
+                        <Th first>ID</Th>
                         <Th>Name</Th>
                         <Th>Coins</Th>
                         <Th>Lienup Rating</Th>
@@ -260,7 +261,8 @@ export default function Home() {
                     pagination={users!}
                     body={(user: User) => (
                         <tr key={user.id}>
-                            <Td first>
+                            <Td first>{user.id}</Td>
+                            <Td>
                                 <div className="flex items-center">
                                     <div className="size-11 shrink-0">
                                         <img alt="" src={user.imageUrl} className="size-11 rounded-full"/>
