@@ -59,6 +59,11 @@ export default function QuizzesEdit() {
 
     return (
         <div>
+            {showSuccess && (
+                <div className="mt-4 text-green-700">
+                    Quiz updated successfully!
+                </div>
+            )}
             <QuizzesForm
                 onSubmit={(quizData) => updateQuiz({data:quizData, quizId: quiz.id})}
                 isLoading={isLoading}
@@ -68,12 +73,6 @@ export default function QuizzesEdit() {
                 error={error}
                 initialData={initial}
             />
-
-            {showSuccess && (
-                <div className="mt-4 text-green-700">
-                    Quiz updated successfully!
-                </div>
-            )}
         </div>
     );
 }

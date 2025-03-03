@@ -376,6 +376,7 @@ function Questions(props: QuestionsProps) {
                                 onUpload={(path, url) => changeState(index, "picture", path)}
                                 onDelete={() => changeState(index, "picture", "removed")}
                                 picture={question.picture}
+                                pictureDisplay={question.picture === "removed" ? undefined : question.picture}
                             />
                         </div>
 
@@ -501,6 +502,7 @@ function OptionItem({option, qIndex, oIndex, onRemove, onChange, qType, uploadUr
                             onUpload={(path, url) => onChange(qIndex, oIndex, "picture", path)}
                             onDelete={() => onChange(qIndex, oIndex, "picture", "removed")}
                             picture={option.picture}
+                            pictureDisplay={option.picture === "removed" ? undefined : option.picture}
                         />
                     </div>
                 </If>

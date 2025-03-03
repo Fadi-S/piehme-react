@@ -1,5 +1,5 @@
 import FileInput from "~/components/file-input";
-import React from "react";
+import React, {useState} from "react";
 
 interface FileInputUploadProps {
     id: string;
@@ -8,20 +8,35 @@ interface FileInputUploadProps {
     uploadUrl: string;
     onUpload: (path: string, url: string) => void;
     onDelete: () => void;
+    pictureDisplay?: string;
 }
 
 export default function FileInputUpload(props: FileInputUploadProps) {
+
+    const [files, setFiles] = useState(props.pictureDisplay ? [{ source: props.pictureDisplay }] : []);
+
+    const handleUpload = (path: string, url: string) => {
+        props.onUpload(path, url);
+        setFiles([{ source: url }]);
+    };
+
+
+    const handleDelete = () => {
+        props.onDelete();
+        setFiles([]);
+    };
+
     return (
         <div>
             <FileInput
                 id={props.id}
-                files={props.picture ? [
+                files={props.pictureDisplay ? [
                     {
-                        source: props.picture,
+                        source: props.pictureDisplay,
                         options: {
                             type: 'local',
                             metadata: {
-                                poster: props.picture,
+                                poster: props.pictureDisplay,
                             }
                         }
                     }
@@ -32,7 +47,7 @@ export default function FileInputUpload(props: FileInputUploadProps) {
                         method: 'POST',
                         onload: (response) => {
                             const data = JSON.parse(response);
-                            props.onUpload(data.path, data.url);
+                            handleUpload(data.path, data.url);
                             return data.url;
                         },
                         onerror: (error) => {
@@ -41,7 +56,7 @@ export default function FileInputUpload(props: FileInputUploadProps) {
                         }
                     },
                     revert: (uniqueFileId, load) => {
-                        props.onDelete();
+                        handleDelete();
                         load();
                     },
                     load: (source, load) => {
@@ -54,7 +69,7 @@ export default function FileInputUpload(props: FileInputUploadProps) {
                 accept={["image/*"]}
                 onChange={(files) => {
                     if (files.length === 0) {
-                        props.onDelete();
+                        handleDelete();
                     }
                 }}
             />
