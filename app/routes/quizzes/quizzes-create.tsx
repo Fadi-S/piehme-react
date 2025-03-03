@@ -10,7 +10,6 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function QuizzesCreate() {
-
     const [createQuiz, {isLoading: isCreateLoading, isSuccess: isCreateSuccess, error}] = useCreateQuizMutation();
 
     return (

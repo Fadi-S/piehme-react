@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 import { ROOT_URL } from "~/base/consts";
 import {getFromLocalStorage} from "~/base/helpers";
+import type {QuizForm} from "~/routes/quizzes/quizzes-form";
 
 
 interface Quiz {
@@ -38,6 +39,10 @@ enum QuestionType {
 
 interface QuizApiResponse {
   quiz: Quiz
+}
+
+interface UploadUrlApiResponse {
+  url: string
 }
 
 // Define a service using a base URL and expected endpoints
@@ -82,7 +87,11 @@ export const quizzesApiSlice = createApi({
       },
     }),
 
-    createQuiz: build.mutation<QuizApiResponse, FormData>({
+    getUploadUrl: build.query<UploadUrlApiResponse, void>({
+      query: () => `/ostaz/quizzes/upload`,
+    }),
+
+    createQuiz: build.mutation<QuizApiResponse, QuizForm>({
       query: (data) => ({
         url: "/ostaz/quizzes",
         method: "POST",
@@ -91,7 +100,7 @@ export const quizzesApiSlice = createApi({
       invalidatesTags: ["Quizzes"],
     }),
 
-    updateQuiz: build.mutation<QuizApiResponse, { data: FormData, quizId: number }>({
+    updateQuiz: build.mutation<QuizApiResponse, { data: QuizForm, quizId: number }>({
       query: ({data, quizId}) => ({
         url: `/ostaz/quizzes/${quizId}`,
         method: "PATCH",
@@ -103,7 +112,7 @@ export const quizzesApiSlice = createApi({
   }),
 })
 
-export const { useGetQuizQuery, useUpdateQuizMutation, useGetQuizzesQuery, useCreateQuizMutation} = quizzesApiSlice
+export const { useGetQuizQuery, useUpdateQuizMutation, useGetUploadUrlQuery, useGetQuizzesQuery, useCreateQuizMutation} = quizzesApiSlice
 
 export type { Quiz, Question, Option };
 

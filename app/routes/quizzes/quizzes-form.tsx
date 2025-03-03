@@ -3,7 +3,7 @@ import Card from "~/components/card";
 import Input from "~/components/input";
 import Button from "~/components/button";
 import DateInput from "~/components/date-input";
-import {QuestionType} from "~/features/quizzes/quizzesApiSlice";
+import {QuestionType, useGetUploadUrlQuery} from "~/features/quizzes/quizzesApiSlice";
 import {PlusIcon} from "@heroicons/react/24/solid";
 import {Bars2Icon, TrashIcon} from "@heroicons/react/24/outline";
 import {
@@ -19,9 +19,11 @@ import {CSS} from "@dnd-kit/utilities";
 import Textarea from "~/components/textarea";
 import If from "~/components/if";
 import Select from "~/components/select";
+import Loading from "~/components/loading";
+import FileInput from "~/components/file-input";
 
 interface QuizzesFormProps {
-    onSubmit: (quiz: FormData) => void;
+    onSubmit: (quiz: QuizForm) => void;
     isLoading: boolean;
     isSuccess: boolean;
     onSuccess: () => void;
@@ -41,8 +43,11 @@ export default function QuizzesForm({
                                     }: QuizzesFormProps) {
     const [errorMessage, setErrorMessage] = React.useState<string>("");
 
+    const {data: upload, isLoading: isLoadingUrl} = useGetUploadUrlQuery();
+
     useEffect(() => {
         if (isSuccess) {
+            setErrorMessage("");
             onSuccess();
         } else if (error) {
             setErrorMessage(error.data.message);
@@ -68,10 +73,13 @@ export default function QuizzesForm({
             const question : QuestionForm = {
                 title: formData.get(`questions[${i}][title]`) as string,
                 points: parseInt(formData.get(`questions[${i}][points]`) as string),
-                type: QuestionType.Choice,
-                correct_answers: JSON.parse(formData.get(`questions[${i}][correct_answers]`) as string),
-                options: []
+                type: formData.get(`questions[${i}][type]`) as QuestionType,
+                correct_answers: "",
+                options: [],
+                picture: formData.get(`questions[${i}][picture]`) as string,
             };
+
+            let correctAnswers: number[] = [];
 
             let j = 0;
             while (true) {
@@ -79,11 +87,21 @@ export default function QuizzesForm({
                     break;
                 }
 
+                if(question.type === QuestionType.Choice || question.type === QuestionType.MultipleCorrectChoices) {
+                    const isCorrect = formData.get(`questions[${i}][options][${j}][correct]`) == "1";
+                    if(isCorrect) {
+                        correctAnswers.push(j + 1);
+                    }
+                } else {
+                    correctAnswers.push(j + 1);
+                }
+
                 const option : OptionForm = {
                     name: formData.get(`questions[${i}][options][${j}][name]`) as string,
-                    order: j,
+                    order: j + 1,
                     clientId: "",
-                    correct: formData.get(`questions[${i}][options][${j}][correct]`) == "1"
+                    correct: false,
+                    picture: formData.get(`questions[${i}][options][${j}][picture]`) as string,
                 };
 
                 question.options.push(option);
@@ -91,14 +109,17 @@ export default function QuizzesForm({
                 j++;
             }
 
+            question.correct_answers = correctAnswers;
             quiz.questions.push(question);
 
             i++;
         }
 
-        console.log(quiz);
+        onSubmit(quiz);
+    }
 
-        // onSubmit(formData);
+    if(isLoadingUrl || !upload) {
+        return <Loading />;
     }
 
     return (
@@ -118,7 +139,7 @@ export default function QuizzesForm({
                     {errorMessage && <div className="text-red-600">{errorMessage}</div>}
                 </Card>
 
-                <Questions questions={initialData?.questions}/>
+                <Questions questions={initialData?.questions} uploadUrl={upload.url} />
 
                 {/*<div className="mt-6">*/}
                 {/*    <Button type="submit" disabled={isLoading}>*/}
@@ -144,7 +165,7 @@ interface QuestionForm {
     points: number
     type: QuestionType
     correct_answers: string[] | number[] | string
-    picture?: string
+    picture: string|undefined
     options: OptionForm[]
 }
 
@@ -152,7 +173,7 @@ interface OptionForm {
     id?: number
     name: string
     order: number
-    picture?: string
+    picture: string|undefined
     clientId: string
     correct: boolean
 }
@@ -162,16 +183,18 @@ export type { QuizForm, QuestionForm, OptionForm };
 
 interface QuestionsProps {
     questions?: QuestionForm[]
+    uploadUrl: string
 }
 
 function Questions(props: QuestionsProps) {
     const generateClientId = () => Math.random().toString(36).substring(2, 11);
 
     const emptyOption = (order: number) => ({
-            name: "",
-            order: order,
-            clientId: generateClientId(),
-            correct: false
+        name: "",
+        order: order,
+        clientId: generateClientId(),
+        correct: false,
+        picture: undefined,
     });
 
     const emptyQuestion: QuestionForm = {
@@ -179,6 +202,7 @@ function Questions(props: QuestionsProps) {
         points: 0,
         type: QuestionType.Choice,
         correct_answers: [],
+        picture: undefined,
         options: [emptyOption(1), emptyOption(2)]
     }
 
@@ -287,9 +311,9 @@ function Questions(props: QuestionsProps) {
                 </Button>
             </div>
 
-            <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-4">
             {questions.map((question, index) => (
-                <Card title={`Question ${index + 1}`} key={index}>
+                <Card className="col-span-2 sm:col-span-1" title={`Question ${index + 1}`} key={index}>
                     <Button
                         color="red"
                         onClick={() => removeQuestion(index)}
@@ -334,7 +358,29 @@ function Questions(props: QuestionsProps) {
                                 {label: "Written", value: QuestionType.Written},
                             ]}
                         />
-                        <Input type="hidden" required id={"correct-answers-" + index} name={`questions[${index}][correct_answers]`} defaultValue={JSON.stringify(question.correct_answers)} />
+
+                        <div className="col-span-2">
+                            <FileInput
+                                id={"picture-" + index}
+                                server={{
+                                    load: question.picture,
+                                    process: {
+                                        url: props.uploadUrl,
+                                        method: 'POST',
+                                        timeout: 7000,
+                                        onload: (response) => {
+                                            const data = JSON.parse(response);
+                                            changeState(index, "picture", data.path);
+                                            return data.path;
+                                        },
+                                    },
+
+                                }}
+                                name="file"
+                                accept={["image/*"]}
+                            />
+                            {/*<input type="hidden" name={`questions[${index}][picture]`} value={question.picture} />*/}
+                        </div>
 
                         <div className="col-span-2">
                             <label className="mb-4 block text-sm/6 font-medium text-gray-600">
@@ -425,6 +471,7 @@ function OptionItem({option, qIndex, oIndex, onRemove, onChange, qType}: OptionI
                         <Input
                             required
                             id={`questions[${qIndex}][options][${oIndex}][correct]`}
+                            name={`questions[${qIndex}][options][${oIndex}][correct]`}
                             type="checkbox"
                             value="1"
                             label="Is Correct"
