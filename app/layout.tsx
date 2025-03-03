@@ -30,7 +30,7 @@ export default function Layout() {
     const [navigation, setNavigation] = useState([
         { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
         { name: 'Attendance', href: '/attendance', icon: DocumentCheckIcon, current: false },
-        // { name: 'Mosab2at', href: '/quizzes', icon: PencilIcon, current: false },
+        { name: 'Mosab2at', href: '/quizzes', icon: PencilIcon, current: false },
     ]);
 
     const role = useAppSelector((state) => state.auth.role);
