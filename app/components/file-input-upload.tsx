@@ -13,11 +13,27 @@ interface FileInputUploadProps {
 
 export default function FileInputUpload(props: FileInputUploadProps) {
 
-    const [files, setFiles] = useState(props.pictureDisplay ? [{ source: props.pictureDisplay }] : []);
+    const [files, setFiles] = useState(props.pictureDisplay ? [{
+        source: props.pictureDisplay,
+        options: {
+            type: 'local',
+            metadata: {
+                poster: props.pictureDisplay,
+            }
+        }
+    }] : []);
 
     const handleUpload = (path: string, url: string) => {
         props.onUpload(path, url);
-        setFiles([{ source: url }]);
+        setFiles([{
+            source: url,
+            options: {
+                type: 'local',
+                metadata: {
+                    poster: url,
+                }
+            }
+        }]);
     };
 
 
@@ -30,17 +46,7 @@ export default function FileInputUpload(props: FileInputUploadProps) {
         <div>
             <FileInput
                 id={props.id}
-                files={props.pictureDisplay ? [
-                    {
-                        source: props.pictureDisplay,
-                        options: {
-                            type: 'local',
-                            metadata: {
-                                poster: props.pictureDisplay,
-                            }
-                        }
-                    }
-                ] : []}
+                files={files}
                 server={{
                     process: {
                         url: props.uploadUrl,
