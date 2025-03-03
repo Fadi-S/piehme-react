@@ -21,6 +21,7 @@ import If from "~/components/if";
 import Select from "~/components/select";
 import Loading from "~/components/loading";
 import FileInput from "~/components/file-input";
+import FileInputUpload from "~/components/file-input-upload";
 
 interface QuizzesFormProps {
     onSubmit: (quiz: QuizForm) => void;
@@ -368,59 +369,13 @@ function Questions(props: QuestionsProps) {
                         />
 
                         <div className="col-span-2">
-                            <FileInput
+                            <FileInputUpload
                                 id={`question-image-${index}`}
-                                files={question.picture ? [
-                                    {
-                                        source: question.picture,
-                                        options: {
-                                            type: 'local',
-                                            metadata: {
-                                                poster: question.picture,
-                                            }
-                                        }
-                                    }
-                                ] : []}
-                                server={{
-                                    process: {
-                                        url: props.uploadUrl,
-                                        method: 'POST',
-                                        timeout: 7000,
-                                        onload: (response) => {
-                                            const data = JSON.parse(response);
-                                            changeState(index, "picture", data.path);
-                                            return data.url;
-                                        },
-                                        onerror: (error) => {
-                                            console.error('Upload error:', error);
-                                            return error.body;
-                                        }
-                                    },
-                                    revert: (uniqueFileId, load) => {
-                                        // Handle file removal
-                                        changeState(index, "picture", "");
-                                        load();
-                                    },
-                                    load: (source, load) => {
-                                        // Handle loading existing images
-                                        fetch(source)
-                                            .then(response => response.blob())
-                                            .then(load);
-                                    }
-                                }}
-                                name="file"
-                                accept={["image/*"]}
-                                onChange={(files) => {
-                                    // Clear picture if all files are removed
-                                    if (files.length === 0) {
-                                        changeState(index, "picture", "");
-                                    }
-                                }}
-                            />
-                            <input
-                                type="hidden"
                                 name={`questions[${index}][picture]`}
-                                value={question.picture || ""}
+                                uploadUrl={props.uploadUrl}
+                                onUpload={(path, url) => changeState(index, "picture", path)}
+                                onDelete={() => changeState(index, "picture", "removed")}
+                                picture={question.picture}
                             />
                         </div>
 
@@ -447,6 +402,7 @@ function Questions(props: QuestionsProps) {
                                             onRemove={() => removeOption(index, oIndex)}
                                             onChange={changeStateOptions}
                                             qType={question.type}
+                                            uploadUrl={props.uploadUrl}
                                         />
                                     ))}
                                 </SortableContext>
@@ -479,9 +435,10 @@ interface OptionItemProps {
     onRemove: () => void;
     onChange: (qIndex:number, oIndex:number, key:string, value:any) => void;
     qType: QuestionType;
+    uploadUrl: string;
 }
 
-function OptionItem({option, qIndex, oIndex, onRemove, onChange, qType}: OptionItemProps) {
+function OptionItem({option, qIndex, oIndex, onRemove, onChange, qType, uploadUrl}: OptionItemProps) {
     const {attributes, listeners, setNodeRef, transform, transition } = useSortable({
         id: option.clientId,
     });
@@ -533,6 +490,17 @@ function OptionItem({option, qIndex, oIndex, onRemove, onChange, qType}: OptionI
                     >
                         <TrashIcon className="h-5 w-5"/>
                     </Button>
+                </div>
+
+                <div className="col-span-12">
+                    <FileInputUpload
+                        id={`questions[${qIndex}][options][${oIndex}][picture]`}
+                        name={`questions[${qIndex}][options][${oIndex}][picture]`}
+                        uploadUrl={uploadUrl}
+                        onUpload={(path, url) => onChange(qIndex, oIndex, "picture", path)}
+                        onDelete={() => onChange(qIndex, oIndex, "picture", "removed")}
+                        picture={option.picture}
+                    />
                 </div>
             </div>
             <hr className="my-5 border-gray-200"/>
