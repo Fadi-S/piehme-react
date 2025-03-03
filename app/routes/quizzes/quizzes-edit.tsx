@@ -41,6 +41,7 @@ export default function QuizzesEdit() {
                 title: question.title,
                 points: question.coins,
                 correct_answers: question.answers,
+                picture: question.picture,
                 type: question.type,
                 options: question.options.map((option) => {
                     return {
@@ -49,6 +50,7 @@ export default function QuizzesEdit() {
                         order: option.order,
                         clientId: Math.random().toString(36).substring(7),
                         correct: isOptionCorrect(option, question.type, question.answers),
+                        picture: option.picture,
                     };
                 }),
             };

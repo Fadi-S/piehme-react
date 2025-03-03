@@ -43,9 +43,10 @@ export default function FileInput(props: FileInputProps) {
     registerPlugin(FilePondPluginImagePreview);
 
     return (
-        <div>
+        <div className={props.className}>
             <FilePond
-
+                key={props.files?.map(f => f.source).join(',')} // Force re-render on files change
+                credits={false}
                 files={props.files}
                 onupdatefiles={props.onChange}
                 allowMultiple={props.multiple}
@@ -53,7 +54,11 @@ export default function FileInput(props: FileInputProps) {
                 name={props.name}
                 acceptedFileTypes={props.accept}
                 server={props.server}
-                labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
+                allowImagePreview={true}
+                labelFileProcessingComplete="Upload successful"
+                labelFileProcessingError="Upload failed"
+                labelTapToUndo="Click to undo"
+                labelTapToCancel="Click to cancel"
             />
         </div>
     );

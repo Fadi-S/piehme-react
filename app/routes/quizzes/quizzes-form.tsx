@@ -78,6 +78,10 @@ export default function QuizzesForm({
                 options: [],
                 picture: formData.get(`questions[${i}][picture]`) as string,
             };
+            const id = formData.get(`questions[${i}][id]`) as string
+            if(id) {
+                question.id = parseInt(id);
+            }
 
             let correctAnswers: number[] = [];
 
@@ -103,6 +107,9 @@ export default function QuizzesForm({
                     correct: false,
                     picture: formData.get(`questions[${i}][options][${j}][picture]`) as string,
                 };
+
+                const id = formData.get(`questions[${i}][options][${j}][id]`) as string
+                if(id) option.id = parseInt(id);
 
                 question.options.push(option);
 
@@ -324,6 +331,7 @@ function Questions(props: QuestionsProps) {
                     </Button>
 
                     <div className="mt-4 grid sm:grid-cols-2 gap-4 mb-8">
+                        <input type="hidden" name={`questions[${index}][id]`} value={question.id || ""} />
                         <Textarea
                             className="col-span-2"
                             required
@@ -361,9 +369,19 @@ function Questions(props: QuestionsProps) {
 
                         <div className="col-span-2">
                             <FileInput
-                                id={"picture-" + index}
+                                id={`question-image-${index}`}
+                                files={question.picture ? [
+                                    {
+                                        source: question.picture,
+                                        options: {
+                                            type: 'local',
+                                            metadata: {
+                                                poster: question.picture,
+                                            }
+                                        }
+                                    }
+                                ] : []}
                                 server={{
-                                    load: question.picture,
                                     process: {
                                         url: props.uploadUrl,
                                         method: 'POST',
@@ -371,15 +389,39 @@ function Questions(props: QuestionsProps) {
                                         onload: (response) => {
                                             const data = JSON.parse(response);
                                             changeState(index, "picture", data.path);
-                                            return data.path;
+                                            return data.url;
                                         },
+                                        onerror: (error) => {
+                                            console.error('Upload error:', error);
+                                            return error.body;
+                                        }
                                     },
-
+                                    revert: (uniqueFileId, load) => {
+                                        // Handle file removal
+                                        changeState(index, "picture", "");
+                                        load();
+                                    },
+                                    load: (source, load) => {
+                                        // Handle loading existing images
+                                        fetch(source)
+                                            .then(response => response.blob())
+                                            .then(load);
+                                    }
                                 }}
                                 name="file"
                                 accept={["image/*"]}
+                                onChange={(files) => {
+                                    // Clear picture if all files are removed
+                                    if (files.length === 0) {
+                                        changeState(index, "picture", "");
+                                    }
+                                }}
                             />
-                            {/*<input type="hidden" name={`questions[${index}][picture]`} value={question.picture} />*/}
+                            <input
+                                type="hidden"
+                                name={`questions[${index}][picture]`}
+                                value={question.picture || ""}
+                            />
                         </div>
 
                         <div className="col-span-2">
@@ -455,8 +497,9 @@ function OptionItem({option, qIndex, oIndex, onRemove, onChange, qType}: OptionI
                 <div className="col-span-1 self-center">
                     <Bars2Icon
                         {...attributes} {...listeners}
-                        className="h-5 w-5 cursor-move" />
+                        className="h-5 w-5 cursor-move"/>
                 </div>
+                <input type="hidden" name={`questions[${qIndex}][options][${oIndex}][id]`} value={option.id || ""}/>
                 <Input
                     required
                     id={`questions[${qIndex}][options][${oIndex}][name]`}
@@ -488,11 +531,11 @@ function OptionItem({option, qIndex, oIndex, onRemove, onChange, qType}: OptionI
                         width="w-auto"
                         padding="p-2"
                     >
-                        <TrashIcon className="h-5 w-5" />
+                        <TrashIcon className="h-5 w-5"/>
                     </Button>
                 </div>
             </div>
-            <hr className="my-5 border-gray-200" />
+            <hr className="my-5 border-gray-200"/>
         </div>
     );
 }

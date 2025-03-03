@@ -16,7 +16,7 @@ interface Quiz {
 interface Question {
   id: number
   title: string
-  picture: string|null
+  picture: string|undefined
   type: QuestionType
   options: Option[]
   coins: number
@@ -27,7 +27,7 @@ interface Option {
   id: number
   name: string
   order: number
-  picture: string|null
+  picture: string|undefined
 }
 
 enum QuestionType {
