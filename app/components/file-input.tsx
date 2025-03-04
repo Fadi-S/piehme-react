@@ -55,6 +55,7 @@ export default function FileInput(props: FileInputProps) {
                 acceptedFileTypes={props.accept}
                 server={props.server}
                 allowImagePreview={true}
+                imagePreviewHeight={200}
                 labelFileProcessingComplete="Upload successful"
                 labelFileProcessingError="Upload failed"
                 labelTapToUndo="Click to undo"

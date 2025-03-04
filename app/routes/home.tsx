@@ -254,7 +254,6 @@ export default function Home() {
                         <Th>Name</Th>
                         <Th>Coins</Th>
                         <Th>Lienup Rating</Th>
-                        <Th>Confirm</Th>
                         <Th>Actions</Th>
                         <Th><span className="sr-only">View</span></Th>
                     </tr>}
@@ -280,22 +279,6 @@ export default function Home() {
                                 <div className="flex flex-col space-y-3 items-center justify-center">
                                     <CoinsButton onFinished={refetch} mode="add" username={user.username}/>
                                     <CoinsButton onFinished={refetch} mode="remove" username={user.username}/>
-                                </div>
-                            </Td>
-                            <Td>
-                                <div className="flex flex-col space-y-3 items-center justify-center">
-                                    <If
-                                        condition={!user.confirmed}
-                                        replacement={(
-                                            <div>
-                                                Confirmed
-                                            </div>
-                                        )}
-                                    >
-                                        <form onSubmit={(e) => submitConfirm(e, user.username)}>
-                                            <Button type="submit">Confirm</Button>
-                                        </form>
-                                    </If>
                                 </div>
                             </Td>
                             <Td className="relative py-5 pl-3 text-right text-sm font-medium whitespace-nowrap">
