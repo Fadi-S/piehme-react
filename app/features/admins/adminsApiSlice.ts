@@ -1,6 +1,6 @@
 import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react"
 import {ROOT_URL} from "~/base/consts";
-import {getFromLocalStorage} from "~/base/helpers";
+import {defaultHeaders, getFromLocalStorage} from "~/base/helpers";
 import {type PageRequest, type Pagination, queryParamsFromRequest} from "~/types/pagination";
 
 interface Admin {
@@ -34,16 +34,7 @@ export {Role};
 export const adminsApiSlice = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: ROOT_URL,
-        prepareHeaders: (headers, {}) => {
-            const token = getFromLocalStorage("token");
-            if (token) {
-                headers.set("Authorization", `Bearer ${token}`);
-            }
-            
-            headers.set("Content-Type", "application/json");
-
-            return headers;
-        },
+        prepareHeaders: (headers, {}) => defaultHeaders(headers),
     }),
     reducerPath: "adminsApi",
     tagTypes: ["Admins", "SchoolYears"],

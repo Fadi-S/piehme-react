@@ -1,6 +1,6 @@
 import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react"
 import {ROOT_URL} from "~/base/consts";
-import {getFromLocalStorage} from "~/base/helpers";
+import {defaultHeaders, getFromLocalStorage} from "~/base/helpers";
 import {type PageRequest, type Pagination, queryParamsFromRequest} from "~/types/pagination";
 
 interface Attendance {
@@ -19,16 +19,7 @@ export type { Attendance };
 export const attendanceApiSlice = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: ROOT_URL,
-        prepareHeaders: (headers, {}) => {
-            headers.set("Content-Type", "application/json");
-
-            const token = getFromLocalStorage("token");
-            if (token) {
-                headers.set("Authorization", `Bearer ${token}`);
-            }
-
-            return headers;
-        },
+        prepareHeaders: (headers, {}) => defaultHeaders(headers),
     }),
     reducerPath: "attendanceApi",
     tagTypes: ["Attendances", "Users"],

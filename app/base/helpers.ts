@@ -7,6 +7,36 @@ export const getFromLocalStorage = (key: string) => {
     return localStorage.getItem(key)
 }
 
+export const getToken = () => {
+    return getFromLocalStorage("token");
+}
+
+export const defaultHeaders = (headers : Headers) => {
+    const token = getFromLocalStorage("token");
+    if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+    }
+
+    headers.set("Content-Type", "application/json");
+
+    return headers;
+}
+
+export const defaultHeadersFileUpload = (headers : Headers) => {
+    const token = getFromLocalStorage("token");
+    if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+    }
+
+    if (headers.get("Content-Type") === "multipart/form-data;") {
+        headers.delete("Content-Type");
+    } else {
+        headers.set("Content-Type", "application/json");
+    }
+
+    return headers;
+}
+
 export const setToLocalStorage = (key: string, value: string) => {
     if (!key || typeof window === 'undefined') {
         return

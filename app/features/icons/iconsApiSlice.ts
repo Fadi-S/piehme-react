@@ -1,6 +1,6 @@
 import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react"
 import {ROOT_URL} from "~/base/consts";
-import {getFromLocalStorage} from "~/base/helpers";
+import {defaultHeadersFileUpload, getFromLocalStorage} from "~/base/helpers";
 import {type PageRequest, type Pagination, queryParamsFromRequest} from "~/types/pagination";
 
 interface Icon {
@@ -25,20 +25,7 @@ export type { Icon, IconUpload };
 export const iconsApiSlice = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: ROOT_URL,
-        prepareHeaders: (headers, {}) => {
-            const token = getFromLocalStorage("token");
-            if (token) {
-                headers.set("Authorization", `Bearer ${token}`);
-            }
-
-            if (headers.get("Content-Type") === "multipart/form-data;") {
-                headers.delete("Content-Type");
-            } else {
-                headers.set("Content-Type", "application/json");
-            }
-
-            return headers;
-        },
+        prepareHeaders: (headers, {}) => defaultHeadersFileUpload(headers),
     }),
     reducerPath: "iconsApi",
     tagTypes: ["Icons"],
