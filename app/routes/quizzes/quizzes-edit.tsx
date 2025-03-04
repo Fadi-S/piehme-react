@@ -35,7 +35,7 @@ export default function QuizzesEdit() {
         id: quiz.id,
         name: quiz.name,
         published_at: quiz.publishedAt.toISOString(),
-        questions: quiz.questions.map((question) => {
+        questions: !quiz.questions ? [] : quiz.questions.map((question) => {
             return {
                 id: question.id,
                 title: question.title,
