@@ -6,6 +6,7 @@ import {type PageRequest, type Pagination, queryParamsFromRequest} from "~/types
 interface Attendance {
     id: number;
     createdAt: string;
+    date: string;
     description: string;
     approved: boolean;
     coins: number;

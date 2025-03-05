@@ -9,9 +9,9 @@ import {
     useApproveAttendanceMutation, useDeleteAttendanceMutation,
     useGetAttendancesQuery
 } from "~/features/attendance/attendanceApiSlice";
-import {formatDate, formatDateString} from "~/base/helpers";
+import {formatDate, formatDateOnlyString, formatDateString} from "~/base/helpers";
 import If from "~/components/if";
-import {CheckCircleIcon} from "@heroicons/react/24/outline";
+import {CheckCircleIcon, TrashIcon} from "@heroicons/react/24/outline";
 import Button from "~/components/button";
 
 export function meta({}: Route.MetaArgs) {
@@ -54,9 +54,11 @@ export default function AttendanceIndex() {
                     )}
                     body={(attendance : Attendance) => (
                         <tr key={attendance.id + "-" + (attendance.approved ? "1" : "0")}>
-                            <Td first>{attendance.username}</Td>
-                            <Td first>{attendance.description}</Td>
-                            <Td>{formatDateString(attendance.createdAt)}</Td>
+                            <Td first>
+                                <div className="font-semibold text-gray-900">{attendance.username}</div>
+                            </Td>
+                            <Td>{attendance.description}</Td>
+                            <Td>{formatDateOnlyString(attendance.date)}</Td>
                             <Td>${attendance.coins}</Td>
                             <Td>
                                 <If
@@ -77,8 +79,8 @@ export default function AttendanceIndex() {
                             </Td>
 
                             <Td>
-                                <Button width="w-auto" color="red" onClick={() => deleteAttendance({attendanceId: attendance.id, username: attendance.username!})}>
-                                    Delete
+                                <Button width="w-auto" color="red" padding="p-2" onClick={() => deleteAttendance({attendanceId: attendance.id, username: attendance.username!})}>
+                                    <TrashIcon className="w-5 h-5" />
                                 </Button>
                             </Td>
                         </tr>

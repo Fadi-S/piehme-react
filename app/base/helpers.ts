@@ -97,3 +97,13 @@ export function formatDateString(date: string): string {
 }
 
 
+export function formatDateOnlyString(date: string): string {
+    return new Date(date).toLocaleDateString("en-UK", {
+        year: "numeric",
+        month: "2-digit",
+        day: "numeric",
+        weekday: "short",
+    });
+}
+
+
