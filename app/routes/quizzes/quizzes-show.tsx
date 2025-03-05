@@ -72,7 +72,7 @@ export default function QuizzesShow() {
         if (question.type === QuestionType.Reorder) {
             let userOrderWithNames: any[] = [];
 
-            if(! (answer.answer instanceof String)) {
+            if(Array.isArray(answer.answer)) {
                 const userOrder = answer.answer as number[];
 
                 userOrderWithNames = userOrder.map((order) => {
