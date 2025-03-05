@@ -88,7 +88,7 @@ export default function QuizzesShow() {
                 <div className="space-y-2 flex items-center justify-between">
                     <div>
                         <ol className="list-decimal list-inside font-bold">
-                            {correctOrderWithNames.map((name, index) => (
+                            {userOrderWithNames.map((name, index) => (
                                 <li key={index}>{name}</li>
                             ))}
                         </ol>
@@ -97,7 +97,7 @@ export default function QuizzesShow() {
                     <div>
                         <strong>Correct</strong>
                         <ol className="list-decimal list-inside">
-                            {userOrderWithNames.map((name, index) => (
+                            {correctOrderWithNames.map((name, index) => (
                                 <li key={index}>{name}</li>
                             ))}
                         </ol>
