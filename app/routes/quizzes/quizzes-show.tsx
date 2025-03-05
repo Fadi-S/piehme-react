@@ -69,12 +69,16 @@ export default function QuizzesShow() {
         }
 
         if (question.type === QuestionType.Reorder) {
-            const userOrder = answer.answer as number[];
+            let userOrderWithNames: any[] = [];
 
-            const userOrderWithNames = userOrder.map((order) => {
-                const option = question.options.find((opt) => opt.order === order);
-                return option ? option.name : `Unknown Option (Order: ${order})`;
-            });
+            if(! (answer.answer instanceof String)) {
+                const userOrder = answer.answer as number[];
+
+                userOrderWithNames = userOrder.map((order) => {
+                    const option = question.options.find((opt) => opt.order === order);
+                    return option ? option.name : `Unknown Option (Order: ${order})`;
+                });
+            }
 
             const correctOrderWithNames = question.options
                 .map((opt) => opt.name);
