@@ -37,7 +37,7 @@ export default function Button(props: ButtonProps) {
         'light-blue': 'bg-blue-200 hover:bg-blue-300 focus-visible:outline-blue-200 text-blue-900',
     }[props.color!];
 
-    const disabledClass = props.disabled ? 'opacity-50 cursor-not-allowed' : '';
+    const disabledClass = props.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
 
     return (
         <button

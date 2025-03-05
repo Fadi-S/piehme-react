@@ -25,6 +25,7 @@ export default [
         route("/quizzes", "./routes/quizzes/quizzes-index.tsx"),
         route("/quizzes/create", "./routes/quizzes/quizzes-create.tsx"),
         route("/quizzes/:slug/edit", "./routes/quizzes/quizzes-edit.tsx"),
+        route("/quizzes/:slug", "./routes/quizzes/quizzes-show.tsx"),
 
         route("/controls", "./routes/controls.tsx"),
         route("/profile", "./routes/profile.tsx"),

@@ -6,6 +6,7 @@ import {Link} from "react-router";
 import React from "react";
 import type {Route} from "./+types/quizzes-index";
 import {createEmptyPagination} from "~/types/pagination";
+import {EyeIcon, PencilSquareIcon} from "@heroicons/react/24/solid";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -61,9 +62,17 @@ export default function QuizzesIndex() {
                                 >{quiz.publishedAt.toLocaleString()}</div>
                             </Td>
                             <Td>
-                                <a href={`/quizzes/${quiz.slug}/edit`} className="text-blue-600 hover:text-blue-900">
-                                    Edit<span className="sr-only">, {quiz.name}</span>
-                                </a>
+                                <div className="flex items-center space-x-5 text-gray-400">
+                                    <a href={`/quizzes/${quiz.slug}`}
+                                       className="hover:text-gray-700">
+                                        <EyeIcon className="w-7 h-7" /><span className="sr-only">, {quiz.name}</span>
+                                    </a>
+
+                                    <a href={`/quizzes/${quiz.slug}/edit`}
+                                       className="hover:text-gray-700">
+                                        <PencilSquareIcon className="w-7 h-7" /><span className="sr-only">, {quiz.name}</span>
+                                    </a>
+                                </div>
                             </Td>
                         </tr>
                     )}

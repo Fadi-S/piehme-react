@@ -14,7 +14,7 @@ export function meta({}: Route.MetaArgs) {
 export default function QuizzesEdit() {
     const slug :string = useParams().slug ?? "0";
 
-    const {data: quiz, isLoading: isQuizLoading} = useGetQuizQuery(slug);
+    const {data: quiz, isLoading: isQuizLoading} = useGetQuizQuery({slug, withResponses: false});
     const [updateQuiz, {isLoading, isSuccess, error}] = useUpdateQuizMutation();
 
     const [showSuccess, setSuccess] = React.useState<boolean>(false);
