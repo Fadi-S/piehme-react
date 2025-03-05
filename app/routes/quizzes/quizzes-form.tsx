@@ -54,19 +54,36 @@ export default function QuizzesForm({
         }
     }, [isLoading]);
 
+    function normalizeDate(dateString : string) {
+        const date = new Date(dateString);
+
+        if (isNaN(date.getTime())) {
+            throw new Error("Invalid date string");
+        }
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+        const day = String(date.getDate()).padStart(2, "0");
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
+    }
+
+
     function submit(e: React.FormEvent) {
         e.preventDefault();
         const formData = new FormData(e.target as HTMLFormElement);
 
         const quiz : QuizForm = {
             name: formData.get("name") as string,
-            published_at: formData.get("published_at") as string,
+            published_at: normalizeDate(formData.get("published_at") as string),
             questions: []
         };
 
         if(formData.get("bonus") && formData.get("bonusBefore")) {
             quiz.bonus = parseInt(formData.get("bonus") as string);
-            quiz.bonusBefore = formData.get("bonusBefore") as string;
+            quiz.bonusBefore = normalizeDate(formData.get("bonusBefore") as string);
         }
 
         let i = 0;
