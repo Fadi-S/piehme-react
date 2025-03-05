@@ -15,6 +15,7 @@ import Card from "~/components/card";
 import {CheckCircleIcon, CheckIcon, XCircleIcon, XMarkIcon} from "@heroicons/react/24/outline";
 import If from "~/components/if";
 import Button from "~/components/button";
+import {formatDate} from "~/base/helpers";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -134,6 +135,8 @@ export default function QuizzesShow() {
                     key={response.id}
                     title={`${response.username} (${response.correctQuestionsCount}/${quiz.questions.length} correct)`}
                 >
+                    {formatDate(response.submittedAt)}
+
                     <div className="space-y-3">
                         {quiz.questions.map((question) => {
                             const answer = response.answers.get(question.id);

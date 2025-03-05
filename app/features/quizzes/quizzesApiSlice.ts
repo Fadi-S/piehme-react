@@ -20,6 +20,7 @@ interface Response {
   coins: number
   correctQuestionsCount: number
   answers: Map<number, Answer>
+  submittedAt: Date
 }
 
 interface Answer {
@@ -115,6 +116,7 @@ export const quizzesApiSlice = createApi({
                 answers.set(parseInt(id), answer);
               }
               response.answers = answers;
+              response.submittedAt = new Date(response.submittedAt);
               return response;
             });
         }

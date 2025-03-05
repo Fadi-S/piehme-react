@@ -18,7 +18,7 @@ import {createEmptyPagination} from "~/types/pagination";
 import If from "~/components/if";
 import {CheckCircleIcon} from "@heroicons/react/24/outline";
 import {useApproveAttendanceMutation, useDeleteAttendanceMutation, type Attendance} from "~/features/attendance/attendanceApiSlice";
-import {formatDate} from "~/base/helpers";
+import {formatDate, formatDateString} from "~/base/helpers";
 import Modal from "~/components/modal";
 import FileInput from "~/components/file-input";
 import type {Route} from "./+types/home";
@@ -230,7 +230,7 @@ export default function ShowUser() {
                     body={(attendance : Attendance) => (
                         <tr key={attendance.id + "-" + (attendance.approved ? "1" : "0")}>
                             <Td first>{attendance.description}</Td>
-                            <Td>{formatDate(attendance.createdAt)}</Td>
+                            <Td>{formatDateString(attendance.createdAt)}</Td>
                             <Td>${attendance.coins}</Td>
                             <Td>
                                 <If

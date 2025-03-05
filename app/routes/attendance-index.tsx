@@ -9,7 +9,7 @@ import {
     useApproveAttendanceMutation, useDeleteAttendanceMutation,
     useGetAttendancesQuery
 } from "~/features/attendance/attendanceApiSlice";
-import {formatDate} from "~/base/helpers";
+import {formatDate, formatDateString} from "~/base/helpers";
 import If from "~/components/if";
 import {CheckCircleIcon} from "@heroicons/react/24/outline";
 import Button from "~/components/button";
@@ -56,7 +56,7 @@ export default function AttendanceIndex() {
                         <tr key={attendance.id + "-" + (attendance.approved ? "1" : "0")}>
                             <Td first>{attendance.username}</Td>
                             <Td first>{attendance.description}</Td>
-                            <Td>{formatDate(attendance.createdAt)}</Td>
+                            <Td>{formatDateString(attendance.createdAt)}</Td>
                             <Td>${attendance.coins}</Td>
                             <Td>
                                 <If

@@ -80,7 +80,7 @@ export function useDebounce(value: string, delay: number): string {
     return debouncedValue;
 }
 
-export function formatDate(date: string): string {
+export function formatDate(date: Date): string {
     return new Date(date).toLocaleDateString("en-UK", {
         year: "numeric",
         month: "2-digit",
@@ -90,6 +90,10 @@ export function formatDate(date: string): string {
         minute: "2-digit",
         weekday: "short",
     });
+}
+
+export function formatDateString(date: string): string {
+    return formatDate(new Date(date));
 }
 
 

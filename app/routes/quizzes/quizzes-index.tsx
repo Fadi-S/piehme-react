@@ -7,6 +7,7 @@ import React from "react";
 import type {Route} from "./+types/quizzes-index";
 import {createEmptyPagination} from "~/types/pagination";
 import {EyeIcon, PencilSquareIcon} from "@heroicons/react/24/solid";
+import {formatDate} from "~/base/helpers";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -59,7 +60,9 @@ export default function QuizzesIndex() {
                             <Td>
                                 <div
                                     className={"text-gray-800 " + (isPast(quiz.publishedAt) ? "text-green-600" : "text-red-600")}
-                                >{quiz.publishedAt.toLocaleString()}</div>
+                                >
+                                    {formatDate(quiz.publishedAt)}
+                                </div>
                             </Td>
                             <Td>
                                 <div className="flex items-center space-x-5 text-gray-400">
