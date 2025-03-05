@@ -21,7 +21,7 @@ export default function Select(props: SelectProps) {
         <div className={props.className}>
             <If condition={!! props.label}>
                 <label htmlFor={props.id} className="block text-sm/6 font-medium text-gray-900">
-                    {props.label}
+                    {props.label} {props.required && <span>*</span>}
                 </label>
             </If>
             <div className="mt-2 grid grid-cols-1">

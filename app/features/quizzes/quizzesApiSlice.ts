@@ -3,13 +3,14 @@ import { ROOT_URL } from "~/base/consts";
 import {defaultHeaders} from "~/base/helpers";
 import type {QuizForm} from "~/routes/quizzes/quizzes-form";
 
-
 interface Quiz {
   id: number
   name: string
   slug: string
   coins: number
   publishedAt: Date
+  bonusBefore?: Date
+  bonus?: number
   questions: Question[]
   responses: Response[]
 }
@@ -79,6 +80,7 @@ export const quizzesApiSlice = createApi({
             return {
                 ...quiz,
                 publishedAt: new Date(quiz.publishedAt),
+                bonusBefore: quiz.bonusBefore ? new Date(quiz.bonusBefore) : undefined,
             };
         });
       },
@@ -99,6 +101,7 @@ export const quizzesApiSlice = createApi({
         quiz = {
           ...quiz,
           publishedAt: new Date(quiz.publishedAt),
+          bonusBefore: quiz.bonusBefore ? new Date(quiz.bonusBefore) : undefined,
         };
 
         if(!quiz.questions) {

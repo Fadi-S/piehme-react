@@ -29,7 +29,7 @@ export default function Textarea(props: TextAreaProps) {
         <div className={props.className}>
             <If condition={!! props.label}>
                 <label htmlFor={props.id} className="block text-sm/6 font-medium text-gray-900">
-                    {props.label}
+                    {props.label} {props.required && <span>*</span>}
                 </label>
             </If>
             <div className="mt-2">

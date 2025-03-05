@@ -17,21 +17,29 @@ export default function Card({children, title, className, expandable, expanded} 
     return (
         <div className={"bg-white overflow-hidden sm:rounded-lg py-6 px-4 sm:px-6 lg:px-8 " + className}>
             <div className="flex items-center justify-between">
-                <If condition={!! title}>
-                    <h2 className={"text-xl font-semibold text-gray-900"}>{title}</h2>
-                </If>
+                {(!expandable && title) && <h2 className={"text-xl font-semibold text-gray-900"}>
+                    {title}
+                </h2>}
                 <If condition={expandable}>
-                    <div></div>
+                    <If condition={!!title}>
+                    <h2
+                        onClick={() => setExpand(!expand)}
+                        className={"text-xl font-semibold text-gray-900 cursor-pointer"}
+                        >
+                            {title}
+                        </h2>
+                    </If>
                     <div className="flex justify-end">
                         <button onClick={() => setExpand(!expand)} className="cursor-pointer">
-                            <ChevronRightIcon className={"w-7 h-7 transition-transform " + (expand ? " rotate-90" : "")}/>
+                            <ChevronRightIcon
+                                className={"w-7 h-7 transition-transform " + (expand ? " rotate-90" : "")}/>
                         </button>
                     </div>
                 </If>
             </div>
 
             <Transition show={expand}>
-                <div className="mt-4 transition duration-300 data-[closed]:opacity-0">
+                <div className="mt-4 transition duration-150 data-[closed]:opacity-0">
                     {children}
                 </div>
             </Transition>

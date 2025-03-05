@@ -20,7 +20,6 @@ import Textarea from "~/components/textarea";
 import If from "~/components/if";
 import Select from "~/components/select";
 import Loading from "~/components/loading";
-import FileInput from "~/components/file-input";
 import FileInputUpload from "~/components/file-input-upload";
 
 interface QuizzesFormProps {
@@ -64,6 +63,11 @@ export default function QuizzesForm({
             published_at: formData.get("published_at") as string,
             questions: []
         };
+
+        if(formData.get("bonus") && formData.get("bonusBefore")) {
+            quiz.bonus = parseInt(formData.get("bonus") as string);
+            quiz.bonusBefore = formData.get("bonusBefore") as string;
+        }
 
         let i = 0;
         while (true) {
@@ -139,6 +143,10 @@ export default function QuizzesForm({
                         <Input required id="name" name="name" label="Name" defaultValue={initialData?.name}/>
                         <DateInput required id="published_at" name="published_at" label="Published At"
                                    defaultValue={initialData?.published_at}/>
+
+                        <Input id="bonus" name="bonus" label="Bonus" type="number" defaultValue={initialData?.bonus}/>
+                        <DateInput id="bonusBefore" name="bonusBefore" label="Bonus Before"
+                                   defaultValue={initialData?.bonusBefore}/>
                     </div>
 
                     <Button type="submit" disabled={isLoading}>
@@ -164,6 +172,8 @@ interface QuizForm {
     id?: number
     name: string
     published_at: string
+    bonusBefore?: string
+    bonus?: number
     questions: QuestionForm[]
 }
 

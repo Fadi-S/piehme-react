@@ -132,6 +132,7 @@ export default function QuizzesShow() {
             {quiz.responses.map((response) => (
                 <Card
                     expandable
+                    expanded={false}
                     key={response.id}
                     title={`${response.username} (${response.correctQuestionsCount}/${quiz.questions.length} correct)`}
                 >
