@@ -1,21 +1,20 @@
 import {
     type Answer,
-    type Option, type Question,
+    type Question,
     QuestionType,
-    useCorrectResponseMutation,
-    useGetQuizQuery,
-    useUpdateQuizMutation
+    useCorrectResponseMutation, useDeleteResponseMutation,
+    useGetQuizQuery
 } from "~/features/quizzes/quizzesApiSlice";
 import React, {useEffect} from "react";
 import type {Route} from "./+types/quizzes-edit";
-import QuizzesForm, {type QuizForm} from "~/routes/quizzes/quizzes-form";
 import {useParams} from "react-router";
 import Loading from "~/components/loading";
 import Card from "~/components/card";
-import {CheckCircleIcon, CheckIcon, XCircleIcon, XMarkIcon} from "@heroicons/react/24/outline";
+import {CheckCircleIcon, CheckIcon, TrashIcon, XCircleIcon, XMarkIcon} from "@heroicons/react/24/outline";
 import If from "~/components/if";
 import Button from "~/components/button";
 import {formatDate} from "~/base/helpers";
+import DeleteButton from "~/components/delete-button";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -134,9 +133,24 @@ export default function QuizzesShow() {
                     expandable
                     expanded={false}
                     key={response.id}
-                    title={`${response.username} (${response.correctQuestionsCount}/${quiz.questions.length} correct)`}
+                    title={
+                        <div className="flex items-center justify-between space-x-4">
+                            <div>
+                                {response.username} ({response.correctQuestionsCount}/{quiz.questions.length} correct)
+                            </div>
+                            <DeleteButton
+                                useDeleteMutation={useDeleteResponseMutation}
+                                itemKey="id"
+                                itemValue={response.id}
+                                onDelete={refetch}
+                                className="text-sm border border-red-600 text-red-600 hover:bg-red-50 px-2 py-1 rounded-lg"
+                            />
+                        </div>
+                    }
                 >
-                    {formatDate(response.submittedAt)}
+                    <div className="my-4 text-sm text-gray-500 font-semibold">
+                        {formatDate(response.submittedAt)}
+                    </div>
 
                     <div className="space-y-3">
                         {quiz.questions.map((question) => {
@@ -206,5 +220,4 @@ function CorrectButton({answerId, onCorrect}: {answerId: number, onCorrect: () =
             </If>
         </Button>
     );
-
 }

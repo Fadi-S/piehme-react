@@ -5,7 +5,7 @@ import {Transition} from "@headlessui/react";
 
 export default function Card({children, title, className, expandable, expanded} : {
     children: React.ReactNode,
-    title?: string,
+    title?: React.ReactNode,
     className?: string,
     expandable?: boolean,
     expanded?: boolean,

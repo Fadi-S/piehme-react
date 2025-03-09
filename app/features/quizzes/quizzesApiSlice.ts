@@ -135,6 +135,13 @@ export const quizzesApiSlice = createApi({
       }),
     }),
 
+    deleteResponse: build.mutation<void, {id: number}>({
+      query: ({id}) => ({
+        url: `/ostaz/quizzes/responses/${id}`,
+        method: "DELETE",
+      }),
+    }),
+
     getUploadUrl: build.query<UploadUrlApiResponse, void>({
       query: () => `/ostaz/quizzes/upload`,
     }),
@@ -160,7 +167,7 @@ export const quizzesApiSlice = createApi({
   }),
 })
 
-export const { useGetQuizQuery, useCorrectResponseMutation, useUpdateQuizMutation, useGetUploadUrlQuery, useGetQuizzesQuery, useCreateQuizMutation} = quizzesApiSlice
+export const { useGetQuizQuery, useDeleteResponseMutation, useCorrectResponseMutation, useUpdateQuizMutation, useGetUploadUrlQuery, useGetQuizzesQuery, useCreateQuizMutation} = quizzesApiSlice
 
 export type { Quiz, Question, Option, Response, Answer };
 
