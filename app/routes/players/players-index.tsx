@@ -3,9 +3,11 @@ import Card from "~/components/card";
 import {Table, Td, Th} from "~/components/table";
 import {type Player, useGetAllPlayersQuery, useDeletePlayerMutation} from "~/features/players/playersApiSlice";
 import {Link, useSearchParams} from "react-router";
-import React from "react";
+import React, {useEffect} from "react";
 import type {Route} from "./+types/players-index";
 import DeleteButton from "~/components/delete-button";
+import {useDebounce} from "~/base/helpers";
+import Input from "~/components/input";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -14,11 +16,20 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function PlayersIndex() {
-    const [searchParams, _] = useSearchParams();
-
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [search, setSearch] = React.useState(searchParams.get("search") ?? "");
     const page = parseInt(searchParams.get("page") || "1");
+    const debouncedSearchTerm = useDebounce(search, 100);
 
-    const {data: players, isLoading, refetch} = useGetAllPlayersQuery({page});
+    const {data: players, isLoading, refetch} = useGetAllPlayersQuery({
+        page, search: debouncedSearchTerm
+    });
+
+    useEffect(() => {
+        const states: { search?: string } = {};
+        if (debouncedSearchTerm) states.search = debouncedSearchTerm;
+        setSearchParams(states);
+    }, [debouncedSearchTerm]);
 
     if (isLoading || !players) {
         return <Loading/>
@@ -27,7 +38,16 @@ export default function PlayersIndex() {
     return (
         <div>
             <Card>
-                <div className={"flex items-center justify-end"}>
+                <div className={"flex items-center justify-between"}>
+                    <div className="w-full sm:w-auto flex items-start">
+                        <Input
+                            id="search"
+                            placeholder="Search"
+                            className="w-full sm:w-64"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                        />
+                    </div>
                     <Link to="/players/create"
                           className={"border px-3 py-1.5 rounded-md hover:bg-blue-200 text-blue-600 " +
                               "hover:text-blue-900"}>
@@ -49,7 +69,7 @@ export default function PlayersIndex() {
                     body={(player: Player) => (
                         <tr key={player.id}>
                             <Td first>
-                                <img src={player.imageUrl} className="w-24 h-auto" />
+                                <img src={player.imageUrl} className="w-24 h-auto"/>
                             </Td>
                             <Td>
                                 <div className="text-gray-800">{player.name}</div>
@@ -66,11 +86,11 @@ export default function PlayersIndex() {
                             <Td>
                                 <div className="flex items-center">
 
-                                <div className={"px-3 py-1.5 rounded-lg " +
-                                    (player.available ? "text-green-100 bg-green-700" : "text-red-100 bg-red-700")
-                                }>
-                                    {player.available ? "Yes" : "No"}
-                                </div>
+                                    <div className={"px-3 py-1.5 rounded-lg " +
+                                        (player.available ? "text-green-100 bg-green-700" : "text-red-100 bg-red-700")
+                                    }>
+                                        {player.available ? "Yes" : "No"}
+                                    </div>
                                 </div>
                             </Td>
                             <Td>
