@@ -49,6 +49,12 @@ export default function QuizzesShow() {
                             </div>
                         );
                     })}
+
+                    <span>{question.options
+                        .filter((opt) => (answer.answer as number[]).includes(opt.order))
+                        .map((opt) => opt.name)
+                        .join(", ")}
+                    </span>
                 </div>
             );
         }
