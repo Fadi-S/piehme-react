@@ -51,7 +51,13 @@ export default function QuizzesShow() {
                     })}
 
                     <span>{question.options
-                        .filter((opt) => (answer.answer as number[]).includes(opt.order))
+                        .filter((opt) => {
+                            if (Array.isArray(question.answers)) {
+                                return (question.answers as number[]).includes(opt.order);
+                            }
+
+                            return question.answers.toString() === opt.order.toString();
+                        })
                         .map((opt) => opt.name)
                         .join(", ")}
                     </span>
