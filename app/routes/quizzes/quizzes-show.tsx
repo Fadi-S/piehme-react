@@ -50,7 +50,7 @@ export default function QuizzesShow() {
                         );
                     })}
 
-                    <span>{question.options
+                    <div className="mt-4 text-green-800 font-bold">{question.options
                         .filter((opt) => {
                             if (Array.isArray(question.answers)) {
                                 return (question.answers as number[]).includes(opt.order);
@@ -60,7 +60,7 @@ export default function QuizzesShow() {
                         })
                         .map((opt) => opt.name)
                         .join(", ")}
-                    </span>
+                    </div>
                 </div>
             );
         }
