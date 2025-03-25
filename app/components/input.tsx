@@ -95,6 +95,7 @@ export default function Input(props: InputProps) {
                         placeholder={props.placeholder}
                         id={props.id}
                         name={props.name}
+                        dir={props.dir}
                         type={props.type}
                         required={props.required}
                         autoComplete={props.autoComplete}
