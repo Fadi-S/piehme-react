@@ -17,8 +17,6 @@ export default function QuizzesEdit() {
     const {data: quiz, isLoading: isQuizLoading} = useGetQuizQuery({slug, withResponses: false});
     const [updateQuiz, {isLoading, isSuccess, error}] = useUpdateQuizMutation();
 
-    const [showSuccess, setSuccess] = React.useState<boolean>(false);
-
     if (isQuizLoading || !quiz) {
         return <Loading />;
     }
@@ -61,16 +59,11 @@ export default function QuizzesEdit() {
 
     return (
         <div>
-            {showSuccess && (
-                <div className="mt-4 text-green-700">
-                    Quiz updated successfully!
-                </div>
-            )}
             <QuizzesForm
                 onSubmit={(quizData) => updateQuiz({data:quizData, quizId: quiz.id})}
                 isLoading={isLoading}
                 isSuccess={isSuccess}
-                onSuccess={() => setSuccess(true)}
+                onSuccess={() => null}
                 title="Update Quiz"
                 error={error}
                 initialData={initial}

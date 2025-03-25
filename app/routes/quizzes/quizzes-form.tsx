@@ -44,6 +44,7 @@ export default function QuizzesForm({
     const [errorMessage, setErrorMessage] = React.useState<string>("");
 
     const {data: upload, isLoading: isLoadingUrl} = useGetUploadUrlQuery();
+    const [showSuccess, setSuccess] = React.useState<boolean>(false);
 
     const questionsRef = useRef<QuestionsHandle>(null);
 
@@ -51,6 +52,7 @@ export default function QuizzesForm({
         if (isSuccess) {
             setErrorMessage("");
             questionsRef.current?.resetDirty();
+            setSuccess(true);
             onSuccess();
         } else if (error) {
             setErrorMessage(error.data.message);
@@ -78,6 +80,7 @@ export default function QuizzesForm({
     function submit(e: React.FormEvent) {
         e.preventDefault();
         const formData = new FormData(e.target as HTMLFormElement);
+        setSuccess(false);
 
         const quiz : QuizForm = {
             name: formData.get("name") as string,
@@ -156,34 +159,52 @@ export default function QuizzesForm({
     }
 
     return (
-        <div>
-            <form onSubmit={submit}>
+        <div className="relative">
+            <form id="quiz-form" onSubmit={submit}>
                 <Card title={title}>
-
                     <div className="grid sm:grid-cols-2 gap-4 mb-8">
                         <Input required id="name" name="name" label="Name" defaultValue={initialData?.name}/>
                         <DateInput required id="published_at" name="published_at" label="Published At"
                                    defaultValue={initialData?.published_at}/>
-
                         <Input id="bonus" name="bonus" label="Bonus" type="number" defaultValue={initialData?.bonus}/>
                         <DateInput id="bonusBefore" name="bonusBefore" label="Bonus Before"
                                    defaultValue={initialData?.bonusBefore}/>
                     </div>
 
-                    <Button type="submit" disabled={isLoading}>
-                        {isLoading ? "Saving..." : "Save"}
-                    </Button>
-                    {errorMessage && <div className="text-red-600">{errorMessage}</div>}
+                    {showSuccess && (
+                        <div className="my-4 text-green-700">
+                            Quiz updated successfully!
+                        </div>
+                    )}
                 </Card>
 
                 <Questions ref={questionsRef} questions={initialData?.questions} uploadUrl={upload.url} />
 
-                {/*<div className="mt-6">*/}
-                {/*    <Button type="submit" disabled={isLoading}>*/}
-                {/*        {isLoading ? "Saving..." : "Save"}*/}
-                {/*    </Button>*/}
-                {/*</div>*/}
+                {/* Normal position (hidden when sticky is active) */}
+                <div className="mt-6 md:hidden">
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading ? "Saving..." : "Save"}
+                    </Button>
+                    {errorMessage && <div className="text-red-600 mt-2">{errorMessage}</div>}
+                </div>
             </form>
+
+            <div className="hidden md:block sticky bottom-0 py-3 bg-white border-t
+             border-gray-200 z-10 transition-all duration-300">
+                <div className="px-4 flex items-center space-x-3">
+                    <Button form="quiz-form" type="submit" disabled={isLoading} className="w-full md:w-auto">
+                        {isLoading ? "Saving..." : "Save"}
+                    </Button>
+
+                    {showSuccess && (
+                        <div className="my-4 text-green-700">
+                            Quiz updated successfully!
+                        </div>
+                    )}
+
+                    {errorMessage && <div className="text-red-600 mt-2">{errorMessage}</div>}
+                </div>
+            </div>
         </div>
     )
         ;
@@ -414,7 +435,8 @@ const Questions = forwardRef<QuestionsHandle, QuestionsProps>((props, ref) => {
                             <Textarea
                                 className="col-span-2"
                                 required
-                                rows={2}
+                                rows={3}
+                                maxLength={500}
                                 id={"title-" + index}
                                 name={`questions[${index}][title]`}
                                 label="Title"

@@ -10,6 +10,7 @@ interface ButtonProps {
     form?: string;
     className?: string;
     padding?: string;
+    unsavedChanges?: boolean;
 }
 
 const defaultProps: ButtonProps = {
@@ -47,7 +48,7 @@ export default function Button(props: ButtonProps) {
             onClick={props.onClick}
             className={"flex justify-center rounded-md text-sm/6 font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2 " + colorClass + " " + props.width + " " + disabledClass + " " + props.className + " " + props.padding}
         >
-            {props.children}
+            {props.children} {props.unsavedChanges === true && <span className="text-red-500">*</span>}
         </button>
     );
 }
