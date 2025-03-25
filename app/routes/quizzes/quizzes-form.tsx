@@ -32,6 +32,11 @@ interface QuizzesFormProps {
     initialData?: any;
 }
 
+
+function classNames(...classes: string[]) {
+    return classes.filter(Boolean).join(' ')
+}
+
 export default function QuizzesForm({
                                         onSubmit,
                                         isLoading,
@@ -180,24 +185,21 @@ export default function QuizzesForm({
 
                 <Questions ref={questionsRef} questions={initialData?.questions} uploadUrl={upload.url} />
 
-                {/* Normal position (hidden when sticky is active) */}
-                <div className="mt-6 md:hidden">
-                    <Button type="submit" disabled={isLoading}>
-                        {isLoading ? "Saving..." : "Save"}
-                    </Button>
-                    {errorMessage && <div className="text-red-600 mt-2">{errorMessage}</div>}
-                </div>
             </form>
 
-            <div className="hidden md:block sticky bottom-0 py-3 bg-white border-t
-             border-gray-200 z-10 transition-all duration-300">
-                <div className="px-4 flex items-center space-x-3">
-                    <Button form="quiz-form" type="submit" disabled={isLoading} className="w-full md:w-auto">
+            <div className={
+                classNames(
+                    "shadow-lg sticky bottom-0 py-3 bg-white border-t-2 z-10 transition-all duration-300 mt-4 rounded-md",
+                    showSuccess ? "border-green-700" : (errorMessage ? "border-red-700" : "border-blue-700")
+                    )
+            }>
+                <div className="px-4 py-1 flex flex-col md:flex-row items-center space-x-3">
+                    <Button form="quiz-form" type="submit" disabled={isLoading} className="w-full md:w-48">
                         {isLoading ? "Saving..." : "Save"}
                     </Button>
 
                     {showSuccess && (
-                        <div className="my-4 text-green-700">
+                        <div className="text-green-700">
                             Quiz updated successfully!
                         </div>
                     )}
@@ -525,7 +527,7 @@ const Questions = forwardRef<QuestionsHandle, QuestionsProps>((props, ref) => {
                     </Card>
                 ))}
 
-                <Card className="flex items-center justify-center min-h-64">
+                <Card className="flex items-center justify-center min-h-64 col-span-2 sm:col-span-1">
                     <div className="flex items-center justify-center w-full mt-4">
                         <Button color="green" onClick={addQuestion} width="w-auto">
                             <PlusIcon className="h-5 w-5 mr-2"/>
