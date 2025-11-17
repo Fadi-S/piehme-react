@@ -7,6 +7,36 @@ export const getFromLocalStorage = (key: string) => {
     return localStorage.getItem(key)
 }
 
+export const getToken = () => {
+    return getFromLocalStorage("token");
+}
+
+export const defaultHeaders = (headers : Headers) => {
+    const token = getFromLocalStorage("token");
+    if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+    }
+
+    headers.set("Content-Type", "application/json");
+
+    return headers;
+}
+
+export const defaultHeadersFileUpload = (headers : Headers) => {
+    const token = getFromLocalStorage("token");
+    if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+    }
+
+    if (headers.get("Content-Type") === "multipart/form-data;") {
+        headers.delete("Content-Type");
+    } else {
+        headers.set("Content-Type", "application/json");
+    }
+
+    return headers;
+}
+
 export const setToLocalStorage = (key: string, value: string) => {
     if (!key || typeof window === 'undefined') {
         return
@@ -50,7 +80,7 @@ export function useDebounce(value: string, delay: number): string {
     return debouncedValue;
 }
 
-export function formatDate(date: string): string {
+export function formatDate(date: Date): string {
     return new Date(date).toLocaleDateString("en-UK", {
         year: "numeric",
         month: "2-digit",
@@ -58,6 +88,20 @@ export function formatDate(date: string): string {
         hour12: true,
         hour: "2-digit",
         minute: "2-digit",
+        weekday: "short",
+    });
+}
+
+export function formatDateString(date: string): string {
+    return formatDate(new Date(date));
+}
+
+
+export function formatDateOnlyString(date: string): string {
+    return new Date(date).toLocaleDateString("en-UK", {
+        year: "numeric",
+        month: "2-digit",
+        day: "numeric",
         weekday: "short",
     });
 }

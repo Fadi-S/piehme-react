@@ -4,7 +4,6 @@ export default [
     layout("./layout.tsx", [
         index("routes/home.tsx"),
         route("/users/:username", "routes/users-show.tsx"),
-        route("/quizzes", "./routes/quizzes-index.tsx"),
         route("/attendance", "./routes/attendance-index.tsx"),
 
         route("/icons", "./routes/icons/icons-index.tsx"),
@@ -22,6 +21,11 @@ export default [
         route("/players", "./routes/players/players-index.tsx"),
         route("/players/create", "./routes/players/players-create.tsx"),
         route("/players/:playerId/edit", "./routes/players/players-edit.tsx"),
+
+        route("/quizzes", "./routes/quizzes/quizzes-index.tsx"),
+        route("/quizzes/create", "./routes/quizzes/quizzes-create.tsx"),
+        route("/quizzes/:slug/edit", "./routes/quizzes/quizzes-edit.tsx"),
+        route("/quizzes/:slug", "./routes/quizzes/quizzes-show.tsx"),
 
         route("/controls", "./routes/controls.tsx"),
         route("/profile", "./routes/profile.tsx"),

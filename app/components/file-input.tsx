@@ -4,6 +4,13 @@ import { FilePond, registerPlugin } from 'react-filepond'
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import 'filepond/dist/filepond.min.css'
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css'
+import type {
+    FetchServerConfigFunction,
+    LoadServerConfigFunction,
+    ProcessServerConfigFunction, RemoveServerConfigFunction, RestoreServerConfigFunction,
+    RevertServerConfigFunction,
+    ServerUrl
+} from "filepond";
 
 
 interface FileInputProps {
@@ -15,7 +22,18 @@ interface FileInputProps {
     accept?: string[];
     multiple?: boolean;
     maxFiles?: number;
-    server?: string;
+    server?: {
+        url?: string;
+        timeout?: number;
+        headers?: { [key: string]: string | boolean | number };
+        process?: string | ServerUrl | ProcessServerConfigFunction | null;
+        revert?: string | ServerUrl | RevertServerConfigFunction | null;
+        restore?: string | ServerUrl | RestoreServerConfigFunction | null;
+        load?: string | ServerUrl | LoadServerConfigFunction | null;
+        fetch?: string | ServerUrl | FetchServerConfigFunction | null;
+        patch?: string | ServerUrl | null;
+        remove?: RemoveServerConfigFunction | null;
+    } | string;
 
     onChange?: (files: any[]) => void;
     files?: any[];
@@ -25,8 +43,10 @@ export default function FileInput(props: FileInputProps) {
     registerPlugin(FilePondPluginImagePreview);
 
     return (
-        <div>
+        <div className={props.className}>
             <FilePond
+                key={props.files?.map(f => f.source).join(',')} // Force re-render on files change
+                credits={false}
                 files={props.files}
                 onupdatefiles={props.onChange}
                 allowMultiple={props.multiple}
@@ -34,7 +54,12 @@ export default function FileInput(props: FileInputProps) {
                 name={props.name}
                 acceptedFileTypes={props.accept}
                 server={props.server}
-                labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
+                allowImagePreview={true}
+                imagePreviewHeight={200}
+                labelFileProcessingComplete="Upload successful"
+                labelFileProcessingError="Upload failed"
+                labelTapToUndo="Click to undo"
+                labelTapToCancel="Click to cancel"
             />
         </div>
     );

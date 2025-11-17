@@ -1,83 +1,174 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 import { ROOT_URL } from "~/base/consts";
-
-interface Group {
-  id: number
-  slug: string
-  name: string
-  quizzes: Quiz[]|null
-}
+import {defaultHeaders} from "~/base/helpers";
+import type {QuizForm} from "~/routes/quizzes/quizzes-form";
 
 interface Quiz {
   id: number
   name: string
   slug: string
-  group: Group
+  coins: number
+  publishedAt: Date
+  bonusBefore?: Date
+  bonus?: number
   questions: Question[]
+  responses: Response[]
+}
+
+interface Response {
+  id: number
+  username: string
+  coins: number
+  correctQuestionsCount: number
+  answers: Map<number, Answer>
+  submittedAt: Date
+}
+
+interface Answer {
+    id: number
+    answer: string[]|number[]|string
+    isCorrect: boolean
+    coins: number
 }
 
 interface Question {
   id: number
   title: string
-  picture: string|null
+  picture: string|undefined
   type: QuestionType
   options: Option[]
-  answers: string[]|number[]
+  coins: number
+  answers: string[]|number[]|string
 }
 
 interface Option {
   id: number
   name: string
   order: number
-  picture: string|null
+  picture: string|undefined
 }
 
 enum QuestionType {
-  Choose = 1,
-  Written = 2,
-}
-
-interface GroupsApiResponse {
-  groups: Group[]
-}
-
-interface GroupApiResponse {
-  group: Group
+  Choice = "Choice",
+  MultipleCorrectChoices = "MultipleCorrectChoices",
+  Reorder = "Reorder",
+  Written = "Written",
 }
 
 interface QuizApiResponse {
   quiz: Quiz
 }
 
+interface UploadUrlApiResponse {
+  url: string
+}
+
 // Define a service using a base URL and expected endpoints
 export const quizzesApiSlice = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: ROOT_URL,
-    prepareHeaders: (headers, {}) => {
-      const key = "";
-      headers.set("Authorization", `Basic ${key}`);
-
-      headers.set("Content-Type", "application/json");
-      return headers;
-    },
+    prepareHeaders: (headers, {}) => defaultHeaders(headers),
   }),
   reducerPath: "quizzesApi",
   tagTypes: ["Quizzes"],
   endpoints: build => ({
-    getGroups: build.query<GroupsApiResponse, number>({
-      query: () => `/groups`,
-      providesTags: (result, error, id) => [{ type: "Quizzes", id }],
+    getQuizzes: build.query<Quiz[], void>({
+      query: () => `/ostaz/quizzes`,
+      providesTags: ["Quizzes"],
+      transformResponse: (response : Quiz[]) => {
+        return response.map((quiz) => {
+            return {
+                ...quiz,
+                publishedAt: new Date(quiz.publishedAt),
+                bonusBefore: quiz.bonusBefore ? new Date(quiz.bonusBefore) : undefined,
+            };
+        });
+      },
     }),
 
-    getGroup: build.query<GroupApiResponse, string>({
-      query: (slug) => `/groups/${slug}?withQuestions&withAnswers`,
-      providesTags: (result, error, id) => [{ type: "Quizzes", id }],
+    getQuiz: build.query<Quiz, { slug: string, withResponses: boolean }>({
+      query: ({slug, withResponses }) => {
+        let url = `/ostaz/quizzes/${slug}`;
+
+        if(withResponses) {
+            url += "?withResponses=1";
+        }
+
+        return url
+      },
+      providesTags: (result, error, {slug}) => [{ type: "Quizzes", slug }],
+      transformResponse: (quiz : Quiz) => {
+        quiz = {
+          ...quiz,
+          publishedAt: new Date(quiz.publishedAt),
+          bonusBefore: quiz.bonusBefore ? new Date(quiz.bonusBefore) : undefined,
+        };
+
+        if(!quiz.questions) {
+          quiz.questions = [];
+        }
+
+        if(quiz.responses !== undefined) {
+          if(! quiz.responses) {
+            quiz.responses = [];
+          }
+
+            quiz.responses = quiz.responses.map((response) => {
+              const answers = new Map();
+              for (const [id, answer] of Object.entries(response.answers)) {
+                answers.set(parseInt(id), answer);
+              }
+              response.answers = answers;
+              response.submittedAt = new Date(response.submittedAt);
+              return response;
+            });
+        }
+
+        return quiz;
+      },
     }),
+
+    correctResponse: build.mutation<void, number>({
+      query: (responseId) => ({
+        url: `/ostaz/quizzes/responses/${responseId}/correct`,
+        method: "PATCH",
+      }),
+    }),
+
+    deleteResponse: build.mutation<void, {id: number}>({
+      query: ({id}) => ({
+        url: `/ostaz/quizzes/responses/${id}`,
+        method: "DELETE",
+      }),
+    }),
+
+    getUploadUrl: build.query<UploadUrlApiResponse, void>({
+      query: () => `/ostaz/quizzes/upload`,
+    }),
+
+    createQuiz: build.mutation<QuizApiResponse, QuizForm>({
+      query: (data) => ({
+        url: "/ostaz/quizzes",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Quizzes"],
+    }),
+
+    updateQuiz: build.mutation<QuizApiResponse, { data: QuizForm, quizId: number }>({
+      query: ({data, quizId}) => ({
+        url: `/ostaz/quizzes/${quizId}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ["Quizzes"],
+    }),
+
   }),
 })
 
-export const { useGetGroupsQuery, useGetGroupQuery} = quizzesApiSlice
+export const { useGetQuizQuery, useDeleteResponseMutation, useCorrectResponseMutation, useUpdateQuizMutation, useGetUploadUrlQuery, useGetQuizzesQuery, useCreateQuizMutation} = quizzesApiSlice
 
-export type { Quiz, Question, Option };
+export type { Quiz, Question, Option, Response, Answer };
 
 export { QuestionType };

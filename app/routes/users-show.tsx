@@ -16,9 +16,9 @@ import Button from "~/components/button";
 import {Table, Td, Th} from "~/components/table";
 import {createEmptyPagination} from "~/types/pagination";
 import If from "~/components/if";
-import {CheckCircleIcon} from "@heroicons/react/24/outline";
+import {CheckCircleIcon, TrashIcon} from "@heroicons/react/24/outline";
 import {useApproveAttendanceMutation, useDeleteAttendanceMutation, type Attendance} from "~/features/attendance/attendanceApiSlice";
-import {formatDate} from "~/base/helpers";
+import {formatDate, formatDateOnlyString, formatDateString} from "~/base/helpers";
 import Modal from "~/components/modal";
 import FileInput from "~/components/file-input";
 import type {Route} from "./+types/home";
@@ -229,8 +229,10 @@ export default function ShowUser() {
                     )}
                     body={(attendance : Attendance) => (
                         <tr key={attendance.id + "-" + (attendance.approved ? "1" : "0")}>
-                            <Td first>{attendance.description}</Td>
-                            <Td>{formatDate(attendance.createdAt)}</Td>
+                            <Td first>
+                                <div className="font-semibold text-gray-900">{attendance.description}</div>
+                            </Td>
+                            <Td>{formatDateOnlyString(attendance.date)}</Td>
                             <Td>${attendance.coins}</Td>
                             <Td>
                                 <If
@@ -251,8 +253,8 @@ export default function ShowUser() {
                             </Td>
 
                             <Td>
-                                <Button width="w-auto" color="red" onClick={() => deleteAttendance({attendanceId: attendance.id, username: user.username})}>
-                                    Delete
+                                <Button width="w-auto" color="red" padding="p-2" onClick={() => deleteAttendance({attendanceId: attendance.id, username: attendance.username!})}>
+                                    <TrashIcon className="w-5 h-5" />
                                 </Button>
                             </Td>
                         </tr>

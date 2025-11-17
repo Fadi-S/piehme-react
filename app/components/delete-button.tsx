@@ -58,9 +58,13 @@ export default function DeleteButton(props: DeleteButtonProps) {
             </Modal>
 
             <button
-                className={"text-red-600 hover:text-red-700 " + props.className}
+                className={"text-red-600 hover:text-red-700 cursor-pointer " + props.className}
                 type="button"
-                onClick={() => setOpen(true)}
+                onClick={(e) => {
+                    e.stopPropagation();
+
+                    setOpen(true);
+                }}
             >
                 Delete
             </button>

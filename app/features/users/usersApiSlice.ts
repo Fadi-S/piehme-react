@@ -1,6 +1,6 @@
 import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react"
 import {ROOT_URL} from "~/base/consts";
-import {getFromLocalStorage} from "~/base/helpers";
+import {defaultHeadersFileUpload, getFromLocalStorage} from "~/base/helpers";
 import {type Pagination, type PageRequest, queryParamsFromRequest} from "~/types/pagination";
 import type {Attendance} from "~/features/attendance/attendanceApiSlice";
 
@@ -24,20 +24,7 @@ export type {User};
 export const usersApiSlice = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: ROOT_URL,
-        prepareHeaders: (headers, {}) => {
-            const token = getFromLocalStorage("token");
-            if (token) {
-                headers.set("Authorization", `Bearer ${token}`);
-            }
-
-            if (headers.get("Content-Type") === "multipart/form-data;") {
-                headers.delete("Content-Type");
-            } else {
-                headers.set("Content-Type", "application/json");
-            }
-
-            return headers;
-        },
+        prepareHeaders: (headers, {}) => defaultHeadersFileUpload(headers),
     }),
     reducerPath: "usersApi",
     tagTypes: ["Users"],
@@ -134,6 +121,17 @@ export const usersApiSlice = createApi({
             invalidatesTags: ["Users"],
         }),
 
+        createUsersBulk: build.mutation<Map<String, String>, { usernames: string[] }>({
+            query: ({usernames}) => {
+                return {
+                    url: `ostaz/users/bulk`,
+                    method: "POST",
+                    body: {users: usernames},
+                };
+            },
+            invalidatesTags: ["Users"],
+        }),
+
         deleteUser: build.mutation<void, { username:string }>({
             query: ({username}) => {
                 return {
@@ -153,7 +151,7 @@ export const usersApiSlice = createApi({
             },
             invalidatesTags: (_, __, {userId}) => [{type: "Users", id: userId}],
         }),
-        
+
         hideFromLeaderboard: build.mutation<number, { userId: number }>({
             query: ({userId}) => {
                 return {
@@ -167,3 +165,4 @@ export const usersApiSlice = createApi({
 })
 
 export const {useGetUsersQuery, useGetUsersCoinsQuery, useGetUserQuery, useDeleteUserMutation, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation, useShowInLeaderboardMutation, useHideFromLeaderboardMutation} = usersApiSlice;
+
