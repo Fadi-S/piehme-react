@@ -52,6 +52,16 @@ export const usersApiSlice = createApi({
 
         }),
 
+        // Get users sorted by coins
+        getUsersCoins: build.query<Pagination<User>, PageRequest>({
+            query: (req: PageRequest) => {
+                let url = "ostaz/users/coins";
+                url += queryParamsFromRequest(req);
+
+                return { url, method: "GET" };
+            },
+        }),
+
         getUser: build.query<User, { username: string }>({
             query: ({username}) => `ostaz/users/${username}`,
             providesTags: (_, __, {username}) => [{type: "Users", id: username}],
@@ -156,4 +166,4 @@ export const usersApiSlice = createApi({
     }),
 })
 
-export const {useGetUsersQuery, useGetUserQuery, useDeleteUserMutation, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation, useShowInLeaderboardMutation, useHideFromLeaderboardMutation} = usersApiSlice;
+export const {useGetUsersQuery, useGetUsersCoinsQuery, useGetUserQuery, useDeleteUserMutation, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation, useShowInLeaderboardMutation, useHideFromLeaderboardMutation} = usersApiSlice;

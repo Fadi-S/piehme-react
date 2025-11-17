@@ -21,8 +21,11 @@ export default function Pagination({
                                    }: PaginationProps) {
     const url = window.location.pathname;
 
-    const buildPageUrl = (pg: number) =>
-        `${url}?${new URLSearchParams({ [queryParam]: pg.toString() }).toString()}`;
+    const buildPageUrl = (pg: number) => {
+        const params = new URLSearchParams(window.location.search);
+        params.set(queryParam, pg.toString());
+        return `${url}?${params.toString()}`;
+    };
 
     const nextPageUrl = useMemo(() => {
         if (page === totalPages) return window.location.href;

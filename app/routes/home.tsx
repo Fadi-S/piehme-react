@@ -5,17 +5,18 @@ import Button from "~/components/button";
 import {Table, Td, Th} from "~/components/table";
 import React, {useEffect} from "react";
 import {useSearchParams} from "react-router";
-import {useConfirmMutation, useCreateUserMutation, useGetUsersQuery} from "~/features/users/usersApiSlice";
+import {useConfirmMutation, useCreateUserMutation, useGetUsersQuery, useGetUsersCoinsQuery} from "~/features/users/usersApiSlice";
 import type {User} from "~/features/users/usersApiSlice";
 import {useDebounce} from "~/base/helpers";
 import Loading from "~/components/loading";
 import CoinsButton from "~/components/coins";
 import Modal from "~/components/modal";
 import If from "~/components/if";
+import Toggle from "~/components/toggle";
 
 export function meta({}: Route.MetaArgs) {
     return [
-        {title: "Piehme Cup"},
+        {title: "STG Cup"},
     ];
 }
 
@@ -25,8 +26,15 @@ export default function Home() {
 
     const [search, setSearch] = React.useState(searchParams.get("search") ?? "");
     const debouncedSearchTerm = useDebounce(search, 100);
+    const [sort, setSort] = React.useState<string>(searchParams.get("sort") ?? "default");
+    const sortByCoins = sort === "coins";
 
-    const {data: users, isLoading, refetch} = useGetUsersQuery({page, search: debouncedSearchTerm});
+    const {data: usersDefault, isLoading: isLoadingDefault, refetch: refetchDefault} = useGetUsersQuery({page, search: debouncedSearchTerm}, { skip: sortByCoins });
+    const {data: usersCoins, isLoading: isLoadingCoins, refetch: refetchCoins} = useGetUsersCoinsQuery({page, search: debouncedSearchTerm}, { skip: !sortByCoins });
+
+    const users = sortByCoins ? usersCoins : usersDefault;
+    const isLoading = sortByCoins ? isLoadingCoins : isLoadingDefault;
+    const refetch = sortByCoins ? refetchCoins : refetchDefault;
 
     const [open, setOpen] = React.useState(false);
     const [createUser, {isLoading: isCreatingUser, isSuccess: isCreateUserSuccess, error}] = useCreateUserMutation();
@@ -37,10 +45,11 @@ export default function Home() {
     const [errorMessage, setErrorMessage] = React.useState("");
 
     useEffect(() => {
-        const states: { search?: string } = {};
+        const states: { search?: string, sort?: string } = {};
         if (debouncedSearchTerm) states.search = debouncedSearchTerm;
+        if (sort) states.sort = sort;
         setSearchParams(states);
-    }, [debouncedSearchTerm]);
+    }, [debouncedSearchTerm, sort]);
 
     useEffect(() => {
         if(isConfirmSuccess) {
@@ -87,7 +96,7 @@ export default function Home() {
         <div>
             <Card>
                 <div className="sm:flex sm:items-center">
-                    <div className="w-full flex items-start">
+                    <div className="w-full flex items-start space-x-4">
                         <Input
                             id="search"
                             placeholder="Search"
@@ -95,6 +104,10 @@ export default function Home() {
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                         />
+                        <div className="flex items-center space-x-2">
+                            <span className="text-sm text-gray-600">Sort by coins</span>
+                            <Toggle enabled={sortByCoins} onChange={(enabled) => setSort(enabled ? "coins" : "default")} />
+                        </div>
                     </div>
                     <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
                         <Button onClick={() => setOpen(true)} type="button">Add user</Button>
