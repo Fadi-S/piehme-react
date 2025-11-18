@@ -149,7 +149,7 @@ export default function Home() {
                             onChange={e => setSearch(e.target.value)}
                         />
                     </div>
-                    <div>
+                    <div className="order-first sm:order-none w-full sm:w-auto flex justify-center mt-4 sm:mt-0">
                         <Button
                             color={sort === "coins" ? "light-blue" : "gray"}
                             type="button"
