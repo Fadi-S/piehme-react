@@ -16,6 +16,7 @@ interface User {
     selectedIcon: string;
     confirmed: Boolean;
     attendances?: Attendance[];
+    chemistry?: number;
 }
 
 export type {User};
@@ -37,6 +38,15 @@ export const usersApiSlice = createApi({
                 return {url, method: "GET",};
             },
 
+        }),
+
+        getUsersByCoins: build.query<Pagination<User>, PageRequest>({
+            query: (req: PageRequest) => {
+                let url = "ostaz/users/coins";
+                url += queryParamsFromRequest(req);
+
+                return {url, method: "GET"};
+            },
         }),
 
         getUser: build.query<User, { username: string }>({
@@ -154,4 +164,4 @@ export const usersApiSlice = createApi({
     }),
 })
 
-export const {useGetUsersQuery, useGetUserQuery, useCreateUsersBulkMutation, useDeleteUserMutation, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation, useShowInLeaderboardMutation, useHideFromLeaderboardMutation} = usersApiSlice;
+export const {useGetUsersQuery, useGetUsersByCoinsQuery, useGetUserQuery, useCreateUsersBulkMutation, useDeleteUserMutation, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation, useShowInLeaderboardMutation, useHideFromLeaderboardMutation} = usersApiSlice;

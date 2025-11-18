@@ -9,7 +9,8 @@ import {
     useConfirmMutation,
     useCreateUserMutation,
     useCreateUsersBulkMutation,
-    useGetUsersQuery
+    useGetUsersQuery,
+    useGetUsersByCoinsQuery
 } from "~/features/users/usersApiSlice";
 import type {User} from "~/features/users/usersApiSlice";
 import {useDebounce} from "~/base/helpers";
@@ -32,8 +33,14 @@ export default function Home() {
 
     const [search, setSearch] = React.useState(searchParams.get("search") ?? "");
     const debouncedSearchTerm = useDebounce(search, 100);
+    const initialSort = (searchParams.get("sort") ?? "default") as "default" | "coins";
+    const [sort, setSort] = React.useState<"default" | "coins">(initialSort);
 
-    const {data: users, isLoading, refetch} = useGetUsersQuery({page, search: debouncedSearchTerm});
+    const {data: usersDefault, isLoading: isLoadingDefault, refetch: refetchDefault} = useGetUsersQuery({page, search: debouncedSearchTerm});
+    const {data: usersCoins, isLoading: isLoadingCoins, refetch: refetchCoins} = useGetUsersByCoinsQuery({page, search: debouncedSearchTerm});
+    const users = sort === "coins" ? usersCoins : usersDefault;
+    const isLoading = sort === "coins" ? isLoadingCoins : isLoadingDefault;
+    const refetch = sort === "coins" ? refetchCoins : refetchDefault;
 
     const [open, setOpen] = React.useState(false);
     const [openBulk, setOpenBulk] = React.useState(false);
@@ -46,10 +53,11 @@ export default function Home() {
     const [errorMessage, setErrorMessage] = React.useState("");
 
     useEffect(() => {
-        const states: { search?: string } = {};
+        const states: { search?: string; sort?: string } = {};
         if (debouncedSearchTerm) states.search = debouncedSearchTerm;
+        if (sort && sort !== "default") states.sort = sort;
         setSearchParams(states);
-    }, [debouncedSearchTerm]);
+    }, [debouncedSearchTerm, sort]);
 
     useEffect(() => {
         if(isConfirmSuccess) {
@@ -141,10 +149,21 @@ export default function Home() {
                             onChange={e => setSearch(e.target.value)}
                         />
                     </div>
+                    <div>
+                        <Button
+                            color={sort === "coins" ? "light-blue" : "gray"}
+                            type="button"
+                            onClick={() => setSort(prev => (prev === "coins" ? "default" : "coins"))}
+                        >
+                            {sort === "coins" ? "Sort by Overall Rating" : "Sort by Earned Coins"}
+                        </Button>
+                    </div>
                     <div className="mt-4 sm:mt-0 sm:ml-16 flex items-center justify-between space-x-4">
+                        
+
                         <Button onClick={() => setOpen(true)} type="button">Add user</Button>
 
-                        <Button color="heavy-green" onClick={() => setOpenBulk(true)} type="button">Add users from list</Button>
+                        <Button color="heavy-green" onClick={() => setOpenBulk(true)} type="button">Add list</Button>
 
                         <Modal
                             open={open}
@@ -249,20 +268,22 @@ export default function Home() {
                 </div>
 
                 <Table
-                    header={<tr>
-                        <Th first>ID</Th>
+                    header={<tr className="text-center">
+                        <Th>ID</Th>
                         <Th>Name</Th>
-                        <Th>Coins</Th>
                         <Th>Lienup Rating</Th>
-                        <Th>Actions</Th>
+                        <Th>Chemistry</Th>
+                        <Th>Overall Rating</Th>
+                        <Th>Current Coins</Th>
+                        <Th>Modify</Th>
                         <Th><span className="sr-only">View</span></Th>
                     </tr>}
                     pagination={users!}
                     body={(user: User) => (
-                        <tr key={user.id}>
-                            <Td first>{user.id}</Td>
+                        <tr key={user.id} className="text-center">
+                            <Td>{user.id}</Td>
                             <Td>
-                                <div className="flex items-center">
+                                <div className="flex items-center justify-center">
                                     <div className="size-11 shrink-0">
                                         <img alt="" src={user.imageUrl} className="size-11 rounded-full"/>
                                     </div>
@@ -271,10 +292,16 @@ export default function Home() {
                                     </div>
                                 </div>
                             </Td>
-                            <Td className="text-gray-700 font-semibold">${user.coins}</Td>
                             <Td>
                                 <div className="mt-1 text-gray-500">{user.lineupRating}</div>
                             </Td>
+                            <Td>
+                                <div className="mt-1 text-gray-500">{user.chemistry}</div>
+                            </Td>
+                            <Td>
+                                <div className="mt-1 text-gray-500">{Math.floor((user.lineupRating + (user.chemistry ?? 0)))}</div>
+                            </Td>
+                            <Td className="text-gray-700 font-semibold">${user.coins}</Td>
                             <Td>
                                 <div className="flex flex-col space-y-3 items-center justify-center">
                                     <CoinsButton onFinished={refetch} mode="add" username={user.username}/>

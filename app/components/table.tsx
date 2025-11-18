@@ -76,7 +76,7 @@ function Th({ className, children, first, last }: TdProps) {
         <th
             scope="col"
             className={
-                "py-3.5 pr-3 pl-4 text-left text-sm font-semibold text-gray-900 " +
+                "py-3.5 pr-3 pl-4 text-center text-sm font-semibold text-gray-900 " +
                 (first ? "pl-4 sm:pl-0 " : "") +
                 (last ? "pr-4 sm:pr-0 " : "") +
                 className
