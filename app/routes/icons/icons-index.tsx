@@ -45,9 +45,11 @@ export default function IconsIndex() {
                         </tr>
                     )}
                     body={(icon: Icon) => (
-                        <tr key={icon.id}>
-                            <Td first>
-                                <img src={icon.imageUrl} className="w-24 h-auto"/>
+                        <tr key={icon.id} className="text-center">
+                            <Td>
+                                <div className="flex justify-center">
+                                    <img src={icon.imageUrl} className="w-24 h-auto"/>
+                                </div>
                             </Td>
                             <Td>
                                 <div className="text-gray-800">{icon.name}</div>
@@ -56,7 +58,7 @@ export default function IconsIndex() {
                                 <div className="text-gray-800">${icon.price}</div>
                             </Td>
                             <Td>
-                                <div className="flex items-center">
+                                <div className="flex justify-center">
 
                                     <div className={"px-3 py-1.5 rounded-lg " +
                                         (icon.available ? "text-green-100 bg-green-700" : "text-red-100 bg-red-700")
@@ -66,7 +68,7 @@ export default function IconsIndex() {
                                 </div>
                             </Td>
                             <Td>
-                                <div className="flex items-center space-x-3">
+                                <div className="flex items-center justify-center space-x-3">
                                     <a href={`/icons/${icon.id}/edit`}
                                        className="text-blue-600 hover:text-blue-900">
                                         Edit<span className="sr-only">, {icon.name}</span>

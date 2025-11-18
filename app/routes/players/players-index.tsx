@@ -61,15 +61,20 @@ export default function PlayersIndex() {
                             <Th>Name</Th>
                             <Th>Price</Th>
                             <Th>Position</Th>
+                            <Th>Club</Th>
+                            <Th>League</Th>
+                            <Th>Nationality</Th>
                             <Th>Rating</Th>
                             <Th>Available</Th>
                             <Th></Th>
                         </tr>
                     )}
                     body={(player: Player) => (
-                        <tr key={player.id}>
-                            <Td first>
-                                <img src={player.imageUrl} className="w-24 h-auto"/>
+                        <tr key={player.id} className="text-center">
+                            <Td>
+                                <div className="flex justify-center">
+                                    <img src={player.imageUrl} className="w-24 h-auto"/>
+                                </div>
                             </Td>
                             <Td>
                                 <div className="text-gray-800">{player.name}</div>
@@ -81,11 +86,19 @@ export default function PlayersIndex() {
                                 <div className="text-gray-800">{player.position}</div>
                             </Td>
                             <Td>
+                                <div className="text-gray-800">{player.club}</div>
+                            </Td>
+                            <Td>
+                                <div className="text-gray-800">{player.league}</div>
+                            </Td>
+                            <Td>
+                                <div className="text-gray-800">{player.nationality}</div>
+                            </Td>
+                            <Td>
                                 <div className="text-gray-800">{player.rating}</div>
                             </Td>
                             <Td>
-                                <div className="flex items-center">
-
+                                <div className="flex justify-center">
                                     <div className={"px-3 py-1.5 rounded-lg " +
                                         (player.available ? "text-green-100 bg-green-700" : "text-red-100 bg-red-700")
                                     }>
@@ -94,7 +107,7 @@ export default function PlayersIndex() {
                                 </div>
                             </Td>
                             <Td>
-                                <div className="flex items-center space-x-3">
+                                <div className="flex items-center justify-center space-x-3">
                                     <a href={`/players/${player.id}/edit`}
                                        className="text-blue-600 hover:text-blue-900">
                                         Edit<span className="sr-only">, {player.name}</span>

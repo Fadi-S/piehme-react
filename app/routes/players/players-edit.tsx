@@ -35,6 +35,9 @@ export default function PlayersEdit() {
         available: player.available,
         position: player.position,
         rating: player.rating,
+        club: player.club,
+        league: player.league,
+        nationality: player.nationality,
         image: null,
     };
 

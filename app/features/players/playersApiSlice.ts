@@ -12,6 +12,9 @@ interface Player {
     rating: number;
     price: number;
     available: boolean;
+    club: string;
+    league: string;
+    nationality: string;
 }
 
 interface PlayerUpload {
@@ -21,6 +24,9 @@ interface PlayerUpload {
     available: boolean;
     position: string;
     rating: number;
+    club: string;
+    league: string;
+    nationality: string;
 }
 
 export type { Player, PlayerUpload };
@@ -62,6 +68,9 @@ export const playersApiSlice = createApi({
                 formData.set("price", player.price.toString());
                 formData.set("rating", player.rating.toString());
                 formData.set("available", player.available ? "1" : "0");
+                formData.set("club", player.club);
+                formData.set("league", player.league);
+                formData.set("nationality", player.nationality);
 
                 if(player.image)
                     formData.set("image", player.image as Blob);
@@ -87,6 +96,9 @@ export const playersApiSlice = createApi({
                 formData.set("price", player.price.toString());
                 formData.set("rating", player.rating.toString());
                 formData.set("available", player.available ? "1" : "0");
+                formData.set("club", player.club);
+                formData.set("league", player.league);
+                formData.set("nationality", player.nationality);
                 formData.set("image", player.image as Blob);
 
                 return {

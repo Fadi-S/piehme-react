@@ -27,7 +27,7 @@ export default function PlayersForm({onSubmit, isLoading, isSuccess, onSuccess, 
     useEffect(() => {
         if( isSuccess ) {
             onSuccess();
-        } else if (error) {
+        } else if (error && error.data) {
             setErrorMessage(error.data.message);
         }
     }, [isLoading]);
@@ -36,13 +36,26 @@ export default function PlayersForm({onSubmit, isLoading, isSuccess, onSuccess, 
         e.preventDefault();
         const formData = new FormData(e.target as HTMLFormElement);
 
+        const clubValue = formData.get("club");
+        const leagueValue = formData.get("league");
+        const nationalityValue = formData.get("nationality");
+
+        console.log("Form data:", {
+            club: clubValue,
+            league: leagueValue,
+            nationality: nationalityValue
+        });
+
         onSubmit({
-            name: formData.get("name") as string,
-            price: parseInt(formData.get("price") as string),
+            name: (formData.get("name") as string) || "",
+            price: parseInt((formData.get("price") as string) || "0"),
             available: formData.get("available") === "1",
-            rating: parseInt(formData.get("rating") as string),
-            position: formData.get("position") as string,
-            image: image as File,
+            rating: parseInt((formData.get("rating") as string) || "0"),
+            position: (formData.get("position") as string) || "",
+            club: (clubValue as string) || "",
+            league: (leagueValue as string) || "",
+            nationality: (nationalityValue as string) || "",
+            image: image,
         });
     }
 
@@ -63,6 +76,9 @@ export default function PlayersForm({onSubmit, isLoading, isSuccess, onSuccess, 
                             defaultValue={initialData?.position}
                             options={positions.map((position) => ({value: position, label: position}))}
                         />
+                        <Input required id="club" name="club" label="Club" defaultValue={initialData?.club} />
+                        <Input required id="league" name="league" label="League" defaultValue={initialData?.league} />
+                        <Input required id="nationality" name="nationality" label="Nationality" defaultValue={initialData?.nationality} />
                         <Checkbox id="available" name="available" label="Available" value={1} defaultChecked={initialData?.available} />
 
                         <FileInput
