@@ -7,6 +7,6 @@ interface LogoProps {
 
 export default function Logo(props: LogoProps) {
     return (
-        <img src={logo} alt="Cup logo" className={props.className} />
+        <img src={logo} alt="Cup logo" className={props.className || "w-14 h-14"} />
     );
 }

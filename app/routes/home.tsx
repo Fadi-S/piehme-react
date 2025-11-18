@@ -23,7 +23,7 @@ import {ArrowDownTrayIcon} from "@heroicons/react/24/outline";
 
 export function meta({}: Route.MetaArgs) {
     return [
-        {title: "Piehme Cup"},
+        {title: "Cup"},
     ];
 }
 
@@ -161,9 +161,9 @@ export default function Home() {
                     <div className="mt-4 sm:mt-0 sm:ml-16 flex items-center justify-between space-x-4">
                         
 
-                        <Button onClick={() => setOpen(true)} type="button">Add user</Button>
+                        <Button onClick={() => setOpen(true)} type="button" className="whitespace-nowrap">Add user</Button>
 
-                        <Button color="heavy-green" onClick={() => setOpenBulk(true)} type="button">Add list</Button>
+                        <Button color="heavy-green" onClick={() => setOpenBulk(true)} type="button" className="whitespace-nowrap">Add list</Button>
 
                         <Modal
                             open={open}
