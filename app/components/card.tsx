@@ -15,7 +15,7 @@ export default function Card({children, title, className, expandable, expanded} 
     expandable = expandable ?? false;
 
     return (
-        <div className={"bg-white overflow-hidden sm:rounded-lg py-6 px-4 sm:px-6 lg:px-8 " + className}>
+        <div className={"bg-white overflow-hidden sm:rounded-lg py-6 px-4 sm:px-6 lg:px-8 max-w-full " + className}>
             <div className="flex items-center justify-between">
                 {(!expandable && title) && <h2 className={"text-xl font-semibold text-gray-900"}>
                     {title}

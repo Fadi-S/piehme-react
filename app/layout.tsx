@@ -208,7 +208,7 @@ export default function Layout() {
                     </a>
                 </div>
 
-                <main className="py-10 lg:pl-72">
+                <main className="py-10 lg:pl-72 overflow-x-hidden">
                     <div className="px-4 sm:px-6 lg:px-8">
                         <PrivateRoute />
                     </div>

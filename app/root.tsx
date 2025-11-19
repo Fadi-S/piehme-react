@@ -27,14 +27,14 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-      <html className="h-full bg-gray-100">
+      <html className="h-full bg-gray-100 overflow-x-hidden">
       <head>
         <meta charSet="utf-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
         <Meta/>
         <Links/>
       </head>
-      <body className="h-full">
+      <body className="h-full overflow-x-hidden">
       {children}
       <ScrollRestoration/>
       <Scripts/>
@@ -47,7 +47,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
       <Provider store={store}>
-              <div>
+              <div className="w-full overflow-x-hidden">
                   <Outlet/>
               </div>
       </Provider>
