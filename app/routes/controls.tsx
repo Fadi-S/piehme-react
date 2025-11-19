@@ -48,7 +48,7 @@ export default function Controls() {
                             </Td>
                             <If condition={isAdmin}>
                                 <Td>
-                                    <div className="flex items-center">
+                                    <div className="flex items-center justify-center">
                                         <div
                                             className={"rounded-lg px-2 py-1.5 font-bold " + (control.role === "ADMIN" ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800")}>
                                             {control.role.toLowerCase()}

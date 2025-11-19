@@ -64,24 +64,28 @@ export default function AttendanceIndex() {
                                 <If
                                     condition={! attendance.approved}
                                     replacement={(
-                                        <div className="flex items-center">
-                                            <div className="flex items-center space-x-1 bg-green-800 text-green-100 rounded-md px-3 py-1.5 text-sm/6">
+                                        <div className="flex items-center justify-center">
+                                            <div className="flex items-center justify-center space-x-1 bg-green-800 text-green-100 rounded-md px-3 py-1.5 text-sm/6">
                                                 <span>Approved</span>
                                                 <CheckCircleIcon className="w-6 h-6" />
                                             </div>
                                         </div>
                                     )}
                                 >
-                                    <Button width="w-auto" color="green" onClick={() => approveAttendance({attendanceId: attendance.id, username: attendance.username!})}>
-                                        Approve
-                                    </Button>
+                                    <div className="flex items-center justify-center">
+                                        <Button width="w-auto" color="green" onClick={() => approveAttendance({attendanceId: attendance.id, username: attendance.username!})}>
+                                            Approve
+                                        </Button>
+                                    </div>
                                 </If>
                             </Td>
 
                             <Td>
-                                <Button width="w-auto" color="red" padding="p-2" onClick={() => deleteAttendance({attendanceId: attendance.id, username: attendance.username!})}>
-                                    <TrashIcon className="w-5 h-5" />
-                                </Button>
+                                <div  className="flex items-center justify-center">
+                                    <Button width="w-auto" color="red" padding="p-2" onClick={() => deleteAttendance({attendanceId: attendance.id, username: attendance.username!})}>
+                                        <TrashIcon className="w-5 h-5" />
+                                    </Button>
+                                </div>
                             </Td>
                         </tr>
                     )}

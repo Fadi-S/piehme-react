@@ -60,7 +60,7 @@ function Td({ className, children, first, last }: TdProps) {
     return (
         <td
             className={
-                "px-3 py-5 text-sm whitespace-nowrap text-gray-500 " +
+                "px-3 py-5 text-center items-center text-sm whitespace-nowrap text-gray-500 " +
                 (first ? "pl-4 sm:pl-0 " : "") +
                 (last ? "pr-4 sm:pr-0 " : "") +
                 className
