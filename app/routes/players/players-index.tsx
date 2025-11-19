@@ -38,8 +38,8 @@ export default function PlayersIndex() {
     return (
         <div>
             <Card>
-                <div className={"flex items-center justify-between"}>
-                    <div className="w-full sm:w-auto flex items-start">
+                <div className={"flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"}>
+                    <div className="w-full sm:w-auto flex items-start order-2 sm:order-1">
                         <Input
                             id="search"
                             placeholder="Search"
@@ -50,7 +50,7 @@ export default function PlayersIndex() {
                     </div>
                     <Link to="/players/create"
                           className={"border px-3 py-1.5 rounded-md hover:bg-blue-200 text-blue-600 " +
-                              "hover:text-blue-900"}>
+                              "hover:text-blue-900 whitespace-nowrap self-end sm:self-auto order-1 sm:order-2"}>
                         Create Player
                     </Link>
                 </div>
