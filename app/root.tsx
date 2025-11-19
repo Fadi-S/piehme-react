@@ -5,12 +5,15 @@ import {
     Outlet,
     Scripts,
     ScrollRestoration,
+    useLocation,
 } from "react-router";
 import {store} from "~/base/store";
 
 import type { Route } from "./+types/root";
 import "./app.css";
 import {Provider} from "react-redux";
+import { useEffect } from "react";
+import { isSuspiciousPath, getSecurityAlertPayload, sendSecurityEmail } from "~/base/security";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -58,6 +61,32 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let message = "Oops!";
   let details = "An unexpected error occurred.";
   let stack: string | undefined;
+  const location = useLocation();
+
+  useEffect(() => {
+    const sendAlert = async () => {
+      if (isRouteErrorResponse(error) && error.status === 404) {
+        const currentPath = location.pathname;
+        
+        if (isSuspiciousPath(currentPath)) {
+          try {
+            const alertPayload = await getSecurityAlertPayload(currentPath);
+            
+            // Send email directly from frontend
+            const emailSent = await sendSecurityEmail(alertPayload);
+            
+            if (emailSent) {
+              console.warn('🚨 Security alert email sent for 404 on suspicious path:', currentPath);
+            }
+          } catch (err) {
+            console.error('Failed to send security alert:', err);
+          }
+        }
+      }
+    };
+    
+    sendAlert();
+  }, [error, location.pathname]);
 
   if (isRouteErrorResponse(error)) {
     message = error.status === 404 ? "404" : "Error";

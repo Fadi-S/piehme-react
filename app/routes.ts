@@ -33,7 +33,10 @@ export default [
 
     layout("./auth/layout.tsx", [
         route("login", "./auth/login.tsx"),
-
         route("register", "./auth/register-user.tsx"),
     ]),
+
+    // Security routes - outside authenticated layout
+    route("/security-warning", "./routes/security-warning.tsx"),
+    route("*", "./routes/catch-all.tsx"),
 ] satisfies RouteConfig;

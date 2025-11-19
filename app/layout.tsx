@@ -1,6 +1,7 @@
 import {Navigate, Outlet} from "react-router";
 import {getFromLocalStorage} from "~/base/helpers";
 import profilePicture from "~/images/defaultPicture.png";
+import SecurityMonitor from "~/components/security-monitor";
 import {useEffect, useRef, useState} from 'react'
 import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from '@headlessui/react'
 import {
@@ -209,6 +210,7 @@ export default function Layout() {
                 </div>
 
                 <main className="py-10 lg:pl-72 overflow-x-hidden">
+                    <SecurityMonitor />
                     <div className="px-4 sm:px-6 lg:px-8">
                         <PrivateRoute />
                     </div>

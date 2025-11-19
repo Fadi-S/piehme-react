@@ -11,6 +11,7 @@ import {
 import React, {useEffect} from "react";
 import {useAppDispatch} from "~/base/hooks";
 import Logo from "~/components/logo";
+import { useNavigate } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -18,8 +19,27 @@ export function meta({}: Route.MetaArgs) {
     ];
 }
 
-export default function Login() {
+// Suspicious usernames that should trigger security alert
+const SUSPICIOUS_USERNAMES = ['admin', 'administrator', 'root', 'system', 'test', 'user'];
 
+// Get failed attempts from sessionStorage
+function getFailedAttempts(): number {
+    const attempts = sessionStorage.getItem('login_failed_attempts');
+    return attempts ? parseInt(attempts, 10) : 0;
+}
+
+// Set failed attempts in sessionStorage
+function setFailedAttempts(count: number) {
+    sessionStorage.setItem('login_failed_attempts', count.toString());
+}
+
+// Clear failed attempts
+function clearFailedAttempts() {
+    sessionStorage.removeItem('login_failed_attempts');
+}
+
+export default function Login() {
+    const navigate = useNavigate();
     const [login, {isLoading, isSuccess, isError, error, data}] = useLoginMutation();
     const [username, setUsername] = React.useState("");
     const [password, setPassword] = React.useState("");
@@ -30,6 +50,20 @@ export default function Login() {
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
+
+        // Check if username is suspicious
+        const lowerUsername = username.toLowerCase().trim();
+        if (SUSPICIOUS_USERNAMES.includes(lowerUsername)) {
+            console.warn('🚨 Suspicious username detected:', username);
+            
+            // Store suspicious path for security warning
+            sessionStorage.setItem('suspicious_path', `/login?username=${username}`);
+            sessionStorage.setItem('suspicious_reason', `Attempted login with suspicious username: ${username}`);
+            
+            // Redirect to security warning
+            navigate('/security-warning', { replace: true });
+            return;
+        }
 
         login({username, password});
     }
@@ -42,14 +76,39 @@ export default function Login() {
             dispatch(setRole(data.role));
 
             setErrorMessage(null);
+            
+            // Clear failed attempts on successful login
+            clearFailedAttempts();
 
             window.location.href = "/";
         }
         if(isError && error) {
             // @ts-ignore
             setErrorMessage(error.data?.message);
+            
+            // Increment failed attempts
+            const currentAttempts = getFailedAttempts();
+            const newAttempts = currentAttempts + 1;
+            setFailedAttempts(newAttempts);
+            
+            console.warn(`Failed login attempt ${newAttempts}/3 for username: ${username}`);
+            
+            // Check if we've reached 3 failed attempts
+            if (newAttempts >= 3) {
+                console.error('🚨 Maximum failed login attempts reached!');
+                
+                // Store info for security warning
+                sessionStorage.setItem('suspicious_path', `/login?username=${username}`);
+                sessionStorage.setItem('suspicious_reason', `3 failed login attempts with username: ${username}`);
+                
+                // Clear attempts counter
+                clearFailedAttempts();
+                
+                // Redirect to security warning
+                navigate('/security-warning', { replace: true });
+            }
         }
-    }, [isSuccess, isLoading]);
+    }, [isSuccess, isLoading, isError]);
 
     return (
         <>
