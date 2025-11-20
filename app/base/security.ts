@@ -14,7 +14,6 @@ if (typeof window !== 'undefined') {
 
 const SUSPICIOUS_PATHS = [
     'passwords',
-    'admin',
     'backup',
     'config',
     'database',
@@ -24,7 +23,6 @@ const SUSPICIOUS_PATHS = [
     'env',
     '.env',
     'credentials',
-    'users',
     'api-keys',
     'private',
     'confidential',
