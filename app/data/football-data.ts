@@ -98,12 +98,13 @@ export const CLUBS = [
     "Al - Hillal",
     "Inter Miami",
     "RTBL",
+    "Icons",
 ].sort();
 
 export const LEAGUES = [
     "Bundesliga",
     "Eredivisie",
-    "ICONS",
+    "Icons",
     "Laliga",
     "Liga Portugal",
     "Ligue 1",
