@@ -6,6 +6,7 @@ import Button from "~/components/button";
 import FileInput from "~/components/file-input";
 import type {PlayerUpload} from "~/features/players/playersApiSlice";
 import Select from "~/components/select";
+import { CLUBS, LEAGUES, NATIONALITIES } from "~/data/football-data";
 
 interface PlayersFormProps {
     onSubmit: (player: PlayerUpload) => void;
@@ -76,9 +77,33 @@ export default function PlayersForm({onSubmit, isLoading, isSuccess, onSuccess, 
                             defaultValue={initialData?.position}
                             options={positions.map((position) => ({value: position, label: position}))}
                         />
-                        <Input required id="club" name="club" label="Club" defaultValue={initialData?.club} />
-                        <Input required id="league" name="league" label="League" defaultValue={initialData?.league} />
-                        <Input required id="nationality" name="nationality" label="Nationality" defaultValue={initialData?.nationality} />
+                        <Select
+                            required
+                            id="club"
+                            name="club"
+                            label="Club"
+                            placeholder="-- Choose Club --"
+                            defaultValue={initialData?.club}
+                            options={CLUBS.map((club) => ({value: club, label: club}))}
+                        />
+                        <Select
+                            required
+                            id="league"
+                            name="league"
+                            label="League"
+                            placeholder="-- Choose League --"
+                            defaultValue={initialData?.league}
+                            options={LEAGUES.map((league) => ({value: league, label: league}))}
+                        />
+                        <Select
+                            required
+                            id="nationality"
+                            name="nationality"
+                            label="Nationality"
+                            placeholder="-- Choose Nationality --"
+                            defaultValue={initialData?.nationality}
+                            options={NATIONALITIES.map((nationality) => ({value: nationality, label: nationality}))}
+                        />
                         <Checkbox id="available" name="available" label="Available" value={1} defaultChecked={initialData?.available} />
 
                         <FileInput
