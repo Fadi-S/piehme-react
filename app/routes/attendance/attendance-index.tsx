@@ -1,9 +1,9 @@
-import type {Route} from "./+types/home";
+import type {Route} from "../+types/home";
 import Card from "~/components/card";
 import {Table, Td, Th} from "~/components/table";
 import React, {useEffect} from "react";
 import Loading from "~/components/loading";
-import {useSearchParams} from "react-router";
+import {Link, useSearchParams} from "react-router";
 import {
     type Attendance,
     useApproveAttendanceMutation, useDeleteAttendanceMutation,
@@ -13,6 +13,7 @@ import {formatDate, formatDateOnlyString, formatDateString} from "~/base/helpers
 import If from "~/components/if";
 import {CheckCircleIcon, TrashIcon} from "@heroicons/react/24/outline";
 import Button from "~/components/button";
+import { Input } from "node_modules/@headlessui/react/dist/components/input/input";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -41,6 +42,13 @@ export default function AttendanceIndex() {
     return (
         <div>
             <Card>
+                <div className={"flex items-center justify-end"}>
+                    <Link to="/attendance/create"
+                            className={"border px-3 py-1.5 rounded-md hover:bg-blue-200 text-blue-600 " +
+                                "hover:text-blue-900"}>
+                        Add Attendance
+                    </Link>
+                </div>
                 <Table
                     header={(
                         <tr>

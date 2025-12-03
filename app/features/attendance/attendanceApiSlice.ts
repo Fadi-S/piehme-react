@@ -53,7 +53,17 @@ export const attendanceApiSlice = createApi({
             },
             invalidatesTags: (_, __, {username}) => [{type: "Users", id: username}],
         }),
+
+        createAttendance: build.mutation<{failedUsers: string[], approvedUsers: string[]}, { date: string, liturgyName: string, userIds: number[] }>({
+            query: (attendanceData) => {
+                return {
+                    url: `ostaz/attendances`,
+                    method: "POST",
+                    body: attendanceData,
+                };
+            },
+        }),
     }),
 })
 
-export const {useGetAttendancesQuery, useApproveAttendanceMutation, useDeleteAttendanceMutation} = attendanceApiSlice
+export const {useGetAttendancesQuery, useApproveAttendanceMutation, useDeleteAttendanceMutation, useCreateAttendanceMutation} = attendanceApiSlice

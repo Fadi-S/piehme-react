@@ -4,7 +4,9 @@ export default [
     layout("./layout.tsx", [
         index("routes/home.tsx"),
         route("/users/:username", "routes/users-show.tsx"),
-        route("/attendance", "./routes/attendance-index.tsx"),
+
+        route("/attendance", "./routes/attendance/attendance-index.tsx"),
+        route("/attendance/create", "./routes/attendance/attendance-create.tsx"),
 
         route("/icons", "./routes/icons/icons-index.tsx"),
         route("/icons/create", "./routes/icons/icons-create.tsx"),
