@@ -41,4 +41,5 @@ export default [
     // Security routes - outside authenticated layout
     route("/security-warning", "./routes/security-warning.tsx"),
     route("*", "./routes/catch-all.tsx"),
+    route("/flag", "./routes/flag.tsx"),
 ] satisfies RouteConfig;
