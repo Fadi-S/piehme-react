@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import Input from "~/components/input";
 import Button from "~/components/button";
 
-const FLAG_VALUE = "TE9HTyBIQUNLRVI=";
+const FLAG_VALUE = "VEFSTklNQSBIQUNLRVI=";
 const COUNTDOWN_START = 5;
 
 const RIDDLES: Array<{ question: string; answer: string }> = [
