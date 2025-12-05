@@ -21,6 +21,7 @@ export function meta({}: Route.MetaArgs) {
 
 // Suspicious usernames that should trigger security alert
 const SUSPICIOUS_USERNAMES = ['admin', 'administrator', 'root', 'system', 'test', 'user'];
+const FLAG_VALUE = "TE9HTyBIQUNLRVI=";
 
 // Get failed attempts from sessionStorage
 function getFailedAttempts(): number {
@@ -43,10 +44,22 @@ export default function Login() {
     const [login, {isLoading, isSuccess, isError, error, data}] = useLoginMutation();
     const [username, setUsername] = React.useState("");
     const [password, setPassword] = React.useState("");
+    const [, setLogoClickCount] = React.useState(0);
 
     const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
     const dispatch = useAppDispatch();
+
+    const handleLogoClick = () => {
+        setLogoClickCount(prevCount => {
+            const nextCount = prevCount + 1;
+            if (nextCount >= 10) {
+                alert(`Oops you got me: ${FLAG_VALUE}`);
+                return 0;
+            }
+            return nextCount;
+        });
+    };
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
@@ -114,7 +127,7 @@ export default function Login() {
         <>
             <div className="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8">
                 <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                    <Logo className="mx-auto h-10 w-auto" />
+                    <Logo className="mx-auto h-10 w-auto cursor-pointer select-none" onClick={handleLogoClick} />
                     <h2 className="mt-6 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
                         Sign in to your account
                     </h2>
