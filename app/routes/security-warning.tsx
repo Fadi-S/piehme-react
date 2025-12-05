@@ -115,8 +115,8 @@ export default function SecurityWarning() {
                                 </div>
                             )}
                             <div className="flex items-center justify-between bg-black/30 px-4 py-3 rounded">
-                                <span className="text-gray-400">Status:</span>
-                                <span className="text-red-400 font-bold">LOGGED & REPORTED</span>
+                                <span className="text-gray-400">FLAG:</span>
+                                <span className="text-red-400 font-bold">SSBBTSBBIEhBQ0tFUg==</span>
                             </div>
                         </div>
                     </div>
