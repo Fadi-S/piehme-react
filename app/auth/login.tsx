@@ -50,6 +50,10 @@ export default function Login() {
 
     const dispatch = useAppDispatch();
 
+    useEffect(() => {
+        console.log('Flag:', 'SU5TUEVDVCBIQUNLRVI=');
+    }, []);
+
     const handleLogoClick = () => {
         setLogoClickCount(prevCount => {
             const nextCount = prevCount + 1;
