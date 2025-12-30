@@ -1,8 +1,8 @@
-import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react"
-import {ROOT_URL} from "~/base/consts";
-import {defaultHeadersFileUpload, getFromLocalStorage} from "~/base/helpers";
-import {type Pagination, type PageRequest, queryParamsFromRequest} from "~/types/pagination";
-import type {Attendance} from "~/features/attendance/attendanceApiSlice";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
+import { ROOT_URL } from "~/base/consts";
+import { defaultHeadersFileUpload, getFromLocalStorage } from "~/base/helpers";
+import { type Pagination, type PageRequest, queryParamsFromRequest } from "~/types/pagination";
+import type { Attendance } from "~/features/attendance/attendanceApiSlice";
 
 interface User {
     id: number;
@@ -17,15 +17,16 @@ interface User {
     confirmed: Boolean;
     attendances?: Attendance[];
     chemistry?: number;
+    totalCoinsEarned?: number;
 }
 
-export type {User};
+export type { User };
 
 // Define a service using a base URL and expected endpoints
 export const usersApiSlice = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: ROOT_URL,
-        prepareHeaders: (headers, {}) => defaultHeadersFileUpload(headers),
+        prepareHeaders: (headers, { }) => defaultHeadersFileUpload(headers),
     }),
     reducerPath: "usersApi",
     tagTypes: ["Users"],
@@ -35,7 +36,7 @@ export const usersApiSlice = createApi({
                 let url = "ostaz/users";
                 url += queryParamsFromRequest(req);
 
-                return {url, method: "GET",};
+                return { url, method: "GET", };
             },
 
         }),
@@ -45,28 +46,28 @@ export const usersApiSlice = createApi({
                 let url = "ostaz/users/coins";
                 url += queryParamsFromRequest(req);
 
-                return {url, method: "GET"};
+                return { url, method: "GET" };
             },
         }),
 
         getUser: build.query<User, { username: string }>({
-            query: ({username}) => `ostaz/users/${username}`,
-            providesTags: (_, __, {username}) => [{type: "Users", id: username}],
+            query: ({ username }) => `ostaz/users/${username}`,
+            providesTags: (_, __, { username }) => [{ type: "Users", id: username }],
         }),
 
         addCoins: build.mutation<number, { username: string, coins: number }>({
-            query: ({username, coins}) => {
+            query: ({ username, coins }) => {
                 return {
                     url: `ostaz/users/${username}/coins/add`,
                     method: "POST",
-                    body: {coins},
+                    body: { coins },
                 };
             },
-            invalidatesTags: (_, __, {username}) => [{type: "Users", id: username}],
+            invalidatesTags: (_, __, { username }) => [{ type: "Users", id: username }],
         }),
 
         changeImage: build.mutation<void, { username: string, image: File }>({
-            query: ({username, image}) => {
+            query: ({ username, image }) => {
                 const formData = new FormData();
                 formData.append("image", image);
                 return {
@@ -79,30 +80,30 @@ export const usersApiSlice = createApi({
                     }
                 };
             },
-            invalidatesTags: (_, __, {username}) => [{type: "Users", id: username}],
+            invalidatesTags: (_, __, { username }) => [{ type: "Users", id: username }],
         }),
 
         removeCoins: build.mutation<number, { username: string, coins: number }>({
-            query: ({username, coins}) => {
+            query: ({ username, coins }) => {
                 return {
                     url: `ostaz/users/${username}/coins/remove`,
                     method: "POST",
-                    body: {coins},
+                    body: { coins },
                 };
             },
         }),
-        changePassword: build.mutation<void, { username:string, password: string }>({
-            query: ({username, password}) => {
+        changePassword: build.mutation<void, { username: string, password: string }>({
+            query: ({ username, password }) => {
                 return {
                     url: `ostaz/users/${username}/change-password`,
                     method: "POST",
-                    body: {password},
+                    body: { password },
                 };
             },
         }),
 
-        confirm: build.mutation<void, { username:string }>({
-            query: ({username}) => {
+        confirm: build.mutation<void, { username: string }>({
+            query: ({ username }) => {
                 return {
                     url: `ostaz/users/${username}/confirm`,
                     method: "POST",
@@ -110,58 +111,58 @@ export const usersApiSlice = createApi({
             },
         }),
 
-        createUser: build.mutation<void, { username:string, password: string }>({
-            query: ({username, password}) => {
+        createUser: build.mutation<void, { username: string, password: string }>({
+            query: ({ username, password }) => {
                 return {
                     url: `ostaz/users`,
                     method: "POST",
-                    body: {username, password},
+                    body: { username, password },
                 };
             },
             invalidatesTags: ["Users"],
         }),
 
         createUsersBulk: build.mutation<Map<String, String>, { usernames: string[] }>({
-            query: ({usernames}) => {
+            query: ({ usernames }) => {
                 return {
                     url: `ostaz/users/bulk`,
                     method: "POST",
-                    body: {users: usernames},
+                    body: { users: usernames },
                 };
             },
             invalidatesTags: ["Users"],
         }),
 
-        deleteUser: build.mutation<void, { username:string }>({
-            query: ({username}) => {
+        deleteUser: build.mutation<void, { username: string }>({
+            query: ({ username }) => {
                 return {
                     url: `ostaz/users/${username}`,
                     method: "DELETE",
                 };
             },
-            invalidatesTags: (_, __, {username}) => [{type: "Users", id: username}],
+            invalidatesTags: (_, __, { username }) => [{ type: "Users", id: username }],
         }),
 
         showInLeaderboard: build.mutation<number, { userId: number }>({
-            query: ({userId}) => {
+            query: ({ userId }) => {
                 return {
                     url: `ostaz/users/leaderboard/show/${userId}`,
                     method: "PATCH",
                 };
             },
-            invalidatesTags: (_, __, {userId}) => [{type: "Users", id: userId}],
+            invalidatesTags: (_, __, { userId }) => [{ type: "Users", id: userId }],
         }),
 
         hideFromLeaderboard: build.mutation<number, { userId: number }>({
-            query: ({userId}) => {
+            query: ({ userId }) => {
                 return {
                     url: `ostaz/users/leaderboard/hide/${userId}`,
                     method: "PATCH",
                 };
             },
-            invalidatesTags: (_, __, {userId}) => [{type: "Users", id: userId}],
+            invalidatesTags: (_, __, { userId }) => [{ type: "Users", id: userId }],
         }),
     }),
 })
 
-export const {useGetUsersQuery, useGetUsersByCoinsQuery, useGetUserQuery, useCreateUsersBulkMutation, useDeleteUserMutation, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation, useShowInLeaderboardMutation, useHideFromLeaderboardMutation} = usersApiSlice;
+export const { useGetUsersQuery, useGetUsersByCoinsQuery, useGetUserQuery, useCreateUsersBulkMutation, useDeleteUserMutation, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation, useShowInLeaderboardMutation, useHideFromLeaderboardMutation } = usersApiSlice;
