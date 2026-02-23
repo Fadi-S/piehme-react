@@ -50,6 +50,14 @@ export const usersApiSlice = createApi({
             },
         }),
 
+        getAllUsers: build.query<User[], void>({
+            query: () => "ostaz/users/all",
+        }),
+
+        getAllUsersByCoins: build.query<User[], void>({
+            query: () => "ostaz/users/coins/all",
+        }),
+
         getUser: build.query<User, { username: string }>({
             query: ({ username }) => `ostaz/users/${username}`,
             providesTags: (_, __, { username }) => [{ type: "Users", id: username }],
@@ -165,4 +173,4 @@ export const usersApiSlice = createApi({
     }),
 })
 
-export const { useGetUsersQuery, useGetUsersByCoinsQuery, useGetUserQuery, useCreateUsersBulkMutation, useDeleteUserMutation, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation, useShowInLeaderboardMutation, useHideFromLeaderboardMutation } = usersApiSlice;
+export const { useGetUsersQuery, useGetUsersByCoinsQuery, useGetAllUsersQuery, useGetAllUsersByCoinsQuery, useGetUserQuery, useCreateUsersBulkMutation, useDeleteUserMutation, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation, useShowInLeaderboardMutation, useHideFromLeaderboardMutation } = usersApiSlice;

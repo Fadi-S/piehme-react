@@ -13,7 +13,8 @@ import {
     useGetUsersByCoinsQuery
 } from "~/features/users/usersApiSlice";
 import type { User } from "~/features/users/usersApiSlice";
-import { useDebounce } from "~/base/helpers";
+import { useDebounce, defaultHeaders } from "~/base/helpers";
+import { ROOT_URL } from "~/base/consts";
 import Loading from "~/components/loading";
 import CoinsButton from "~/components/coins";
 import Modal from "~/components/modal";
@@ -51,6 +52,7 @@ export default function Home() {
     const [username, setUsername] = React.useState("");
     const [password, setPassword] = React.useState("");
     const [errorMessage, setErrorMessage] = React.useState("");
+    const [isExporting, setIsExporting] = React.useState(false);
 
     useEffect(() => {
         const states: { search?: string; sort?: string } = {};
@@ -114,6 +116,86 @@ export default function Home() {
         return csv;
     }
 
+    async function fetchAllUsers() {
+        const allUsersList: User[] = [];
+        let page = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+            const headers = new Headers();
+            defaultHeaders(headers);
+
+            const response = await fetch(`${ROOT_URL}/ostaz/users${sort === "coins" ? "/coins" : ""}?page=${page}&size=1000`, {
+                headers: headers
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            allUsersList.push(...data.data);
+
+            hasMore = data.data.length > 0;
+            page++;
+        }
+
+        return allUsersList;
+    }
+
+    async function downloadUsersCSV() {
+        setIsExporting(true);
+        try {
+            const allUsersList = await fetchAllUsers();
+            const csv = mapUsersForCSV(allUsersList);
+            const element = document.createElement("a");
+            const file = new Blob([csv], { type: "text/csv" });
+            element.href = URL.createObjectURL(file);
+            element.download = "users_export.csv";
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        } catch (error) {
+            console.error("Error exporting CSV:", error);
+        } finally {
+            setIsExporting(false);
+        }
+    }
+
+    function mapUsersForCSV(allUsersList: User[]) {
+        if (!allUsersList || allUsersList.length === 0) return "";
+
+        let csv = "Position,Username,Score,Coins\n";
+        const filteredUsers = allUsersList.filter((user: User) => user.lineupRating > 0);
+
+        // Sort users based on current sort selection
+        const sortedUsers = sort === "coins"
+            ? [...filteredUsers].sort((a, b) => (b.totalCoinsEarned ?? 0) - (a.totalCoinsEarned ?? 0))
+            : [...filteredUsers].sort((a, b) => (b.lineupRating + (b.chemistry ?? 0)) - (a.lineupRating + (a.chemistry ?? 0)));
+
+        let currentPosition = 1;
+        let previousScore: number | null = null;
+        let usersAtCurrentPosition = 0;
+
+        sortedUsers.forEach((user: User) => {
+            const score = sort === "coins" ? (user.totalCoinsEarned ?? 0) : (user.lineupRating + (user.chemistry ?? 0));
+
+            // If this is the first user or has a different score, update position
+            if (previousScore === null || score !== previousScore) {
+                currentPosition += usersAtCurrentPosition;
+                usersAtCurrentPosition = 1;
+                previousScore = score;
+            } else {
+                // Same score as previous, increment count but not position
+                usersAtCurrentPosition++;
+            }
+
+            csv += `${currentPosition},${user.username},${score},${user.coins}\n`;
+        });
+
+        return csv;
+    }
+
     function downloadCSV() {
         const element = document.createElement("a");
         const file = new Blob([mapUsersWithPasswordsForCSV(usersPasswords!)], { type: "text/plain" });
@@ -164,6 +246,13 @@ export default function Home() {
                         <Button onClick={() => setOpen(true)} type="button" className="whitespace-nowrap">Add user</Button>
 
                         <Button color="heavy-green" onClick={() => setOpenBulk(true)} type="button" className="whitespace-nowrap">Add list</Button>
+
+                        <Button color="light-blue" onClick={downloadUsersCSV} type="button" disabled={isExporting} className="whitespace-nowrap">
+                            <div className="flex items-center">
+                                <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
+                                <span>{isExporting ? "Exporting..." : "Export CSV"}</span>
+                            </div>
+                        </Button>
 
                         <Modal
                             open={open}
