@@ -1,8 +1,8 @@
-import {Navigate, Outlet} from "react-router";
-import {getFromLocalStorage} from "~/base/helpers";
+import { Navigate, Outlet } from "react-router";
+import { getFromLocalStorage } from "~/base/helpers";
 import profilePicture from "~/images/defaultPicture.png";
 import SecurityMonitor from "~/components/security-monitor";
-import {useEffect, useRef, useState} from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from '@headlessui/react'
 import {
     Bars3Icon,
@@ -14,11 +14,11 @@ import {
     DocumentCheckIcon, PowerIcon, IdentificationIcon, CurrencyDollarIcon, PencilIcon
 } from '@heroicons/react/24/outline'
 import Logo from "~/components/logo";
-import {useDispatch} from "react-redux";
-import {clearAuth} from "~/features/authentication/authenticationApiSlice";
-import {useAppSelector} from "~/base/hooks";
+import { useDispatch } from "react-redux";
+import { clearAuth } from "~/features/authentication/authenticationApiSlice";
+import { useAppSelector } from "~/base/hooks";
 
-function PrivateRoute () {
+function PrivateRoute() {
     const user = getFromLocalStorage('token');
     return user ? <Outlet /> : <Navigate to="/login" replace />;
 }
@@ -51,10 +51,10 @@ export default function Layout() {
 
     useEffect(() => {
 
-        if(! initialized.current) {
+        if (!initialized.current) {
             initialized.current = true;
 
-            if(role === "ADMIN") {
+            if (role === "ADMIN") {
                 navigation.push({ name: 'Icons', href: '/icons', icon: IdentificationIcon, current: false });
                 navigation.push({ name: 'Players', href: '/players', icon: UserGroupIcon, current: false });
                 navigation.push({ name: 'Admins', href: '/admins', icon: BuildingLibraryIcon, current: false });
@@ -74,7 +74,7 @@ export default function Layout() {
                 <Dialog open={sidebarOpen} onClose={setSidebarOpen} className="relative z-50 lg:hidden">
                     <DialogBackdrop
                         transition
-                        className="fixed inset-0 bg-gray-900/80 transition-opacity duration-300 ease-linear data-closed:opacity-0"
+                        className="fixed inset-0 bg-[#1a0e06]/80 transition-opacity duration-300 ease-linear data-closed:opacity-0"
                     />
 
                     <div className="fixed inset-0 flex">
@@ -91,7 +91,7 @@ export default function Layout() {
                                 </div>
                             </TransitionChild>
                             {/* Sidebar component, swap this element with another sidebar if you like */}
-                            <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-2 ring-1 ring-white/10">
+                            <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-[#1a0e06] px-6 pb-2 ring-1 ring-white/10">
                                 <div className="flex h-30 shrink-0 items-center justify-center mt-7 mb-7">
                                     <Logo className="h-40 w-auto" />
                                 </div>
@@ -105,12 +105,12 @@ export default function Layout() {
                                                             href={item.href}
                                                             className={classNames(
                                                                 item.current
-                                                                    ? 'bg-gray-800 text-white'
-                                                                    : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                                                                    ? 'bg-[#3d1f0a] text-white'
+                                                                    : 'text-amber-100/70 hover:bg-[#3d1f0a] hover:text-white',
                                                                 'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold',
                                                             )}
                                                         >
-                                                            <item.icon aria-hidden="true" className="size-6 shrink-0"/>
+                                                            <item.icon aria-hidden="true" className="size-6 shrink-0" />
                                                             {item.name}
                                                         </a>
                                                     </li>
@@ -119,7 +119,7 @@ export default function Layout() {
                                                 <li key="logout">
                                                     <button
                                                         onClick={logout}
-                                                        className='w-full text-gray-400 hover:bg-gray-800 hover:text-white group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold'
+                                                        className='w-full text-amber-100/70 hover:bg-[#3d1f0a] hover:text-white group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold'
                                                     >
                                                         <PowerIcon aria-hidden="true" className="size-6 shrink-0" />
                                                         Logout
@@ -137,9 +137,9 @@ export default function Layout() {
                 {/* Static sidebar for desktop */}
                 <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
                     {/* Sidebar component, swap this element with another sidebar if you like */}
-                    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6">
+                    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-[#1a0e06] px-6">
                         <div className="flex h-30 shrink-0 items-center justify-center mt-7 mb-7">
-                            <Logo className="h-40 w-auto"/>
+                            <Logo className="h-40 w-auto" />
                         </div>
                         <nav className="flex flex-1 flex-col">
                             <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -151,12 +151,12 @@ export default function Layout() {
                                                     href={item.href}
                                                     className={classNames(
                                                         item.current
-                                                            ? 'bg-gray-800 text-white'
-                                                            : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                                                            ? 'bg-[#3d1f0a] text-white'
+                                                            : 'text-amber-100/70 hover:bg-[#3d1f0a] hover:text-white',
                                                         'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold',
                                                     )}
                                                 >
-                                                    <item.icon aria-hidden="true" className="size-6 shrink-0"/>
+                                                    <item.icon aria-hidden="true" className="size-6 shrink-0" />
                                                     {item.name}
                                                 </a>
                                             </li>
@@ -165,9 +165,9 @@ export default function Layout() {
                                         <li key="logout">
                                             <button
                                                 onClick={logout}
-                                                className='w-full text-gray-400 hover:bg-gray-800 hover:text-white group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold'
+                                                className='w-full text-amber-100/70 hover:bg-[#3d1f0a] hover:text-white group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold'
                                             >
-                                                <PowerIcon aria-hidden="true" className="size-6 shrink-0"/>
+                                                <PowerIcon aria-hidden="true" className="size-6 shrink-0" />
                                                 Logout
                                             </button>
                                         </li>
@@ -177,12 +177,12 @@ export default function Layout() {
                                 <li className="-mx-6 mt-auto">
                                     <a
                                         href="/profile"
-                                        className="flex items-center gap-x-4 px-6 py-3 text-sm/6 font-semibold text-white hover:bg-gray-800"
+                                        className="flex items-center gap-x-4 px-6 py-3 text-sm/6 font-semibold text-white hover:bg-[#3d1f0a]"
                                     >
                                         <img
                                             alt=""
                                             src={profilePicture}
-                                            className="size-8 rounded-full bg-gray-800"
+                                            className="size-8 rounded-full bg-[#3d1f0a]"
                                         />
                                         <span className="sr-only">Your profile</span>
                                         <span aria-hidden="true">{username}</span>
@@ -193,8 +193,8 @@ export default function Layout() {
                     </div>
                 </div>
 
-                <div className="sticky top-0 z-40 flex items-center gap-x-6 bg-gray-900 px-4 py-4 shadow-xs sm:px-6 lg:hidden">
-                    <button type="button" onClick={() => setSidebarOpen(true)} className="-m-2.5 p-2.5 text-gray-400 lg:hidden">
+                <div className="sticky top-0 z-40 flex items-center gap-x-6 bg-[#1a0e06] px-4 py-4 shadow-xs sm:px-6 lg:hidden">
+                    <button type="button" onClick={() => setSidebarOpen(true)} className="-m-2.5 p-2.5 text-amber-100/70 lg:hidden">
                         <span className="sr-only">Open sidebar</span>
                         <Bars3Icon aria-hidden="true" className="size-6" />
                     </button>
@@ -204,7 +204,7 @@ export default function Layout() {
                         <img
                             alt=""
                             src={profilePicture}
-                            className="size-8 rounded-full bg-gray-800"
+                            className="size-8 rounded-full bg-[#3d1f0a]"
                         />
                     </a>
                 </div>
