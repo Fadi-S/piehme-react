@@ -54,7 +54,6 @@ interface Option {
 
 enum QuestionType {
   Choice = "Choice",
-  MultipleCorrectChoices = "MultipleCorrectChoices",
   Reorder = "Reorder",
   Written = "Written",
 }
