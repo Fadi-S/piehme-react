@@ -66,6 +66,33 @@ interface UploadUrlApiResponse {
   url: string
 }
 
+interface RescoreSummaryItem {
+  response_id: number
+  entity_quiz_id: number
+  entity_id: number
+  entity_name?: string
+  quiz_id: number
+  question_id: number
+  old_points: number
+  new_points: number
+  delta_points: number
+  old_is_correct: boolean
+  new_is_correct: boolean
+}
+
+interface RescoreSummary {
+  questions_count: number
+  responses_count: number
+  users_count: number
+  total_delta_points: number
+  items: RescoreSummaryItem[]
+}
+
+interface UpdateQuizApiResponse extends QuizApiResponse {
+  message: string
+  rescore_summary: RescoreSummary
+}
+
 // Define a service using a base URL and expected endpoints
 export const quizzesApiSlice = createApi({
   baseQuery: fetchBaseQuery({
@@ -166,7 +193,7 @@ export const quizzesApiSlice = createApi({
       invalidatesTags: ["Quizzes"],
     }),
 
-    updateQuiz: build.mutation<QuizApiResponse, { data: QuizForm, quizId: number }>({
+    updateQuiz: build.mutation<UpdateQuizApiResponse, { data: QuizForm, quizId: number }>({
       query: ({ data, quizId }) => ({
         url: `/ostaz/quizzes/${quizId}`,
         method: "PATCH",
@@ -180,6 +207,6 @@ export const quizzesApiSlice = createApi({
 
 export const { useGetQuizQuery, useDeleteResponseMutation, useCorrectResponseMutation, useUpdateResponseMutation, useUpdateQuizMutation, useGetUploadUrlQuery, useGetQuizzesQuery, useCreateQuizMutation } = quizzesApiSlice
 
-export type { Quiz, Question, Option, Response, Answer };
+export type { Quiz, Question, Option, Response, Answer, RescoreSummary, RescoreSummaryItem, UpdateQuizApiResponse };
 
 export { QuestionType };

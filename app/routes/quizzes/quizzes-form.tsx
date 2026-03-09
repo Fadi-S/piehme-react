@@ -1,11 +1,11 @@
-import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from "react";
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import Card from "~/components/card";
 import Input from "~/components/input";
 import Button from "~/components/button";
 import DateInput from "~/components/date-input";
-import {QuestionType, useGetUploadUrlQuery} from "~/features/quizzes/quizzesApiSlice";
-import {ExclamationTriangleIcon, PlusIcon} from "@heroicons/react/24/solid";
-import {Bars2Icon, TrashIcon} from "@heroicons/react/24/outline";
+import { QuestionType, type RescoreSummary, useGetUploadUrlQuery } from "~/features/quizzes/quizzesApiSlice";
+import { ExclamationTriangleIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { Bars2Icon, TrashIcon } from "@heroicons/react/24/outline";
 import {
     arrayMove,
     SortableContext,
@@ -13,9 +13,9 @@ import {
     useSortable,
     verticalListSortingStrategy
 } from "@dnd-kit/sortable";
-import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
-import {restrictToVerticalAxis} from "@dnd-kit/modifiers";
-import {CSS} from "@dnd-kit/utilities";
+import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { CSS } from "@dnd-kit/utilities";
 import Textarea from "~/components/textarea";
 import If from "~/components/if";
 import Select from "~/components/select";
@@ -30,6 +30,8 @@ interface QuizzesFormProps {
     title: string;
     error?: any;
     initialData?: any;
+    isEditing?: boolean;
+    rescoreSummary?: RescoreSummary;
 }
 
 
@@ -38,17 +40,19 @@ function classNames(...classes: string[]) {
 }
 
 export default function QuizzesForm({
-                                        onSubmit,
-                                        isLoading,
-                                        isSuccess,
-                                        onSuccess,
-                                        title,
-                                        error,
-                                        initialData
-                                    }: QuizzesFormProps) {
+    onSubmit,
+    isLoading,
+    isSuccess,
+    onSuccess,
+    title,
+    error,
+    initialData,
+    isEditing,
+    rescoreSummary
+}: QuizzesFormProps) {
     const [errorMessage, setErrorMessage] = React.useState<string>("");
 
-    const {data: upload, isLoading: isLoadingUrl} = useGetUploadUrlQuery();
+    const { data: upload, isLoading: isLoadingUrl } = useGetUploadUrlQuery();
     const [showSuccess, setSuccess] = React.useState<boolean>(false);
 
     const questionsRef = useRef<QuestionsHandle>(null);
@@ -64,7 +68,7 @@ export default function QuizzesForm({
         }
     }, [isLoading]);
 
-    function normalizeDate(dateString : string) {
+    function normalizeDate(dateString: string) {
         const date = new Date(dateString);
 
         if (isNaN(date.getTime())) {
@@ -87,24 +91,24 @@ export default function QuizzesForm({
         const formData = new FormData(e.target as HTMLFormElement);
         setSuccess(false);
 
-        const quiz : QuizForm = {
+        const quiz: QuizForm = {
             name: formData.get("name") as string,
             published_at: normalizeDate(formData.get("published_at") as string),
             questions: []
         };
 
-        if(formData.get("bonus") && formData.get("bonusBefore")) {
+        if (formData.get("bonus") && formData.get("bonusBefore")) {
             quiz.bonus = parseInt(formData.get("bonus") as string);
             quiz.bonusBefore = normalizeDate(formData.get("bonusBefore") as string);
         }
 
         let i = 0;
         while (true) {
-            if(formData.get(`questions[${i}][title]`) == null) {
+            if (formData.get(`questions[${i}][title]`) == null) {
                 break;
             }
 
-            const question : QuestionForm = {
+            const question: QuestionForm = {
                 title: formData.get(`questions[${i}][title]`) as string,
                 points: parseInt(formData.get(`questions[${i}][points]`) as string),
                 type: formData.get(`questions[${i}][type]`) as QuestionType,
@@ -113,7 +117,7 @@ export default function QuizzesForm({
                 picture: formData.get(`questions[${i}][picture]`) as string,
             };
             const id = formData.get(`questions[${i}][id]`) as string
-            if(id) {
+            if (id) {
                 question.id = parseInt(id);
             }
 
@@ -121,20 +125,20 @@ export default function QuizzesForm({
 
             let j = 0;
             while (true) {
-                if(formData.get(`questions[${i}][options][${j}][name]`) == null) {
+                if (formData.get(`questions[${i}][options][${j}][name]`) == null) {
                     break;
                 }
 
-                if(question.type === QuestionType.Choice || question.type === QuestionType.MultipleCorrectChoices) {
+                if (question.type === QuestionType.Choice) {
                     const isCorrect = formData.get(`questions[${i}][options][${j}][correct]`) == "1";
-                    if(isCorrect) {
+                    if (isCorrect) {
                         correctAnswers.push(j + 1);
                     }
                 } else {
                     correctAnswers.push(j + 1);
                 }
 
-                const option : OptionForm = {
+                const option: OptionForm = {
                     name: formData.get(`questions[${i}][options][${j}][name]`) as string,
                     order: j + 1,
                     clientId: "",
@@ -143,7 +147,7 @@ export default function QuizzesForm({
                 };
 
                 const id = formData.get(`questions[${i}][options][${j}][id]`) as string
-                if(id) option.id = parseInt(id);
+                if (id) option.id = parseInt(id);
 
                 question.options.push(option);
 
@@ -159,7 +163,7 @@ export default function QuizzesForm({
         onSubmit(quiz);
     }
 
-    if(isLoadingUrl || !upload) {
+    if (isLoadingUrl || !upload) {
         return <Loading />;
     }
 
@@ -168,19 +172,44 @@ export default function QuizzesForm({
             <form id="quiz-form" onSubmit={submit}>
                 <Card title={title}>
                     <div className="grid sm:grid-cols-2 gap-4 mb-8">
-                        <Input required id="name" name="name" label="Name" defaultValue={initialData?.name}/>
+                        <Input required id="name" name="name" label="Name" defaultValue={initialData?.name} />
                         <DateInput required id="published_at" name="published_at" label="Published At"
-                                   defaultValue={initialData?.published_at}/>
-                        <Input id="bonus" name="bonus" label="Bonus" type="number" defaultValue={initialData?.bonus}/>
+                            defaultValue={initialData?.published_at} />
+                        <Input id="bonus" name="bonus" label="Bonus" type="number" defaultValue={initialData?.bonus} />
                         <DateInput id="bonusBefore" name="bonusBefore" label="Bonus Before"
-                                   defaultValue={initialData?.bonusBefore}/>
+                            defaultValue={initialData?.bonusBefore} />
                     </div>
+
+                    <If condition={!!isEditing}>
+                        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900">
+                            <div className="flex items-start space-x-3">
+                                <ExclamationTriangleIcon className="mt-0.5 h-5 w-5 flex-none" />
+                                <div className="space-y-1 text-sm">
+                                    <div className="font-semibold">Editing answered questions can change stored scores and user wallets.</div>
+                                    <div>Safe edits like fixing the correct choice or changing points will re-score previous submissions automatically.</div>
+                                    <div>Answered questions cannot be deleted, changed to a different type, or have choice/order options added, removed, or reordered.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </If>
 
                     {showSuccess && (
                         <div className="my-4 text-green-700">
                             Quiz updated successfully!
                         </div>
                     )}
+
+                    <If condition={!!rescoreSummary && rescoreSummary.responses_count > 0}>
+                        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+                            <div className="font-semibold">Previous submissions were re-scored.</div>
+                            <div className="mt-1">
+                                {rescoreSummary?.responses_count} responses across {rescoreSummary?.users_count} users were updated from {rescoreSummary?.questions_count} changed questions.
+                            </div>
+                            <div className="mt-1">
+                                Total wallet delta applied: {rescoreSummary && rescoreSummary.total_delta_points >= 0 ? "+" : ""}{rescoreSummary?.total_delta_points} coins.
+                            </div>
+                        </div>
+                    </If>
                 </Card>
 
                 <Questions ref={questionsRef} questions={initialData?.questions} uploadUrl={upload.url} />
@@ -191,7 +220,7 @@ export default function QuizzesForm({
                 classNames(
                     "shadow-lg sticky bottom-0 py-3 bg-white border-t-2 z-10 transition-all duration-300 mt-4 rounded-md",
                     showSuccess ? "border-green-700" : (errorMessage ? "border-red-700" : "border-blue-700")
-                    )
+                )
             }>
                 <div className="px-4 py-1 flex flex-col md:flex-row items-center space-x-3">
                     <Button form="quiz-form" type="submit" disabled={isLoading} className="w-full md:w-48">
@@ -227,7 +256,7 @@ interface QuestionForm {
     points: number
     type: QuestionType
     correct_answers: string[] | number[] | string
-    picture: string|undefined
+    picture: string | undefined
     options: OptionForm[]
 }
 
@@ -235,7 +264,7 @@ interface OptionForm {
     id?: number
     name: string
     order: number
-    picture: string|undefined
+    picture: string | undefined
     clientId: string
     correct: boolean
 }
@@ -323,7 +352,7 @@ const Questions = forwardRef<QuestionsHandle, QuestionsProps>((props, ref) => {
         setQuestions([...questions, emptyQuestion]);
     }
 
-    function removeQuestion(index : number) {
+    function removeQuestion(index: number) {
         wrappedSetQuestions(questions.filter((_, i) => i !== index));
     }
 
@@ -350,20 +379,18 @@ const Questions = forwardRef<QuestionsHandle, QuestionsProps>((props, ref) => {
         wrappedSetQuestions(newQuestions);
     }
 
-    function changeState(index : number, key : string, value : string)
-    {
+    function changeState(index: number, key: string, value: string) {
         let state = {};
         // @ts-ignore
         state[key] = value;
         const newQuestions = [...questions];
 
-        newQuestions[index] = {...newQuestions[index], ...state};
+        newQuestions[index] = { ...newQuestions[index], ...state };
 
         wrappedSetQuestions(newQuestions);
     }
 
-    function changeStateOptions(qIndex : number, oIndex : number, key : string, value : any)
-    {
+    function changeStateOptions(qIndex: number, oIndex: number, key: string, value: any) {
         const newQuestions = [...questions];
 
         let state = {};
@@ -371,8 +398,8 @@ const Questions = forwardRef<QuestionsHandle, QuestionsProps>((props, ref) => {
         state[key] = value;
 
         const newOptions = [...newQuestions[qIndex]["options"]];
-        newOptions[oIndex] = {...newOptions[oIndex], ...state};
-        newQuestions[qIndex] = {...newQuestions[qIndex], options: newOptions};
+        newOptions[oIndex] = { ...newOptions[oIndex], ...state };
+        newQuestions[qIndex] = { ...newQuestions[qIndex], options: newOptions };
 
         wrappedSetQuestions(newQuestions);
     }
@@ -415,7 +442,7 @@ const Questions = forwardRef<QuestionsHandle, QuestionsProps>((props, ref) => {
 
             <div className="flex items-center justify-center w-full mb-4">
                 <Button color="green" onClick={addQuestion} width="w-auto">
-                    <PlusIcon className="h-5 w-5 mr-2"/>
+                    <PlusIcon className="h-5 w-5 mr-2" />
                     <div>Add Question</div>
                 </Button>
             </div>
@@ -428,12 +455,12 @@ const Questions = forwardRef<QuestionsHandle, QuestionsProps>((props, ref) => {
                             onClick={() => removeQuestion(index)}
                             width="w-auto"
                         >
-                            <TrashIcon className="h-5 w-5 mr-2"/>
+                            <TrashIcon className="h-5 w-5 mr-2" />
                             <div>Remove</div>
                         </Button>
 
                         <div className="mt-4 grid sm:grid-cols-2 gap-4 mb-8">
-                            <input type="hidden" name={`questions[${index}][id]`} value={question.id || ""}/>
+                            <input type="hidden" name={`questions[${index}][id]`} value={question.id || ""} />
                             <Textarea
                                 className="col-span-2"
                                 required
@@ -463,10 +490,9 @@ const Questions = forwardRef<QuestionsHandle, QuestionsProps>((props, ref) => {
                                 value={question.type}
                                 placeholder={"-- Choose a type --"}
                                 options={[
-                                    {label: "Choice", value: QuestionType.Choice},
-                                    {label: "Multiple Correct Choices", value: QuestionType.MultipleCorrectChoices},
-                                    {label: "Reorder", value: QuestionType.Reorder},
-                                    {label: "Written", value: QuestionType.Written},
+                                    { label: "Choice", value: QuestionType.Choice },
+                                    { label: "Reorder", value: QuestionType.Reorder },
+                                    { label: "Written", value: QuestionType.Written },
                                 ]}
                             />
 
@@ -518,7 +544,7 @@ const Questions = forwardRef<QuestionsHandle, QuestionsProps>((props, ref) => {
                                     width="w-auto mx-auto"
                                 >
                                     <div className="flex items-center">
-                                        <PlusIcon className="h-5 w-5 mr-2"/>
+                                        <PlusIcon className="h-5 w-5 mr-2" />
                                         <span>Add Option</span>
                                     </div>
                                 </Button>
@@ -530,7 +556,7 @@ const Questions = forwardRef<QuestionsHandle, QuestionsProps>((props, ref) => {
                 <Card className="flex items-center justify-center min-h-64 col-span-2 sm:col-span-1">
                     <div className="flex items-center justify-center w-full mt-4">
                         <Button color="green" onClick={addQuestion} width="w-auto">
-                            <PlusIcon className="h-5 w-5 mr-2"/>
+                            <PlusIcon className="h-5 w-5 mr-2" />
                             <div>Add Question</div>
                         </Button>
                     </div>
@@ -552,8 +578,8 @@ interface OptionItemProps {
     showPicture?: boolean;
 }
 
-function OptionItem({option, qIndex, oIndex, onRemove, onChange, qType, uploadUrl, showPicture}: OptionItemProps) {
-    const {attributes, listeners, setNodeRef, transform, transition } = useSortable({
+function OptionItem({ option, qIndex, oIndex, onRemove, onChange, qType, uploadUrl, showPicture }: OptionItemProps) {
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
         id: option.clientId,
     });
 
@@ -568,9 +594,9 @@ function OptionItem({option, qIndex, oIndex, onRemove, onChange, qType, uploadUr
                 <div className="col-span-1 self-center">
                     <Bars2Icon
                         {...attributes} {...listeners}
-                        className="h-5 w-5 cursor-move"/>
+                        className="h-5 w-5 cursor-move" />
                 </div>
-                <input type="hidden" name={`questions[${qIndex}][options][${oIndex}][id]`} value={option.id || ""}/>
+                <input type="hidden" name={`questions[${qIndex}][options][${oIndex}][id]`} value={option.id || ""} />
                 <Input
                     required
                     id={`questions[${qIndex}][options][${oIndex}][name]`}
@@ -581,7 +607,7 @@ function OptionItem({option, qIndex, oIndex, onRemove, onChange, qType, uploadUr
                     className="flex-grow col-span-11 sm:col-span-8"
                 />
                 <div className="col-span-8 sm:col-span-2">
-                    <If condition={qType === QuestionType.Choice || qType === QuestionType.MultipleCorrectChoices}>
+                    <If condition={qType === QuestionType.Choice}>
                         <Input
                             required
                             id={`questions[${qIndex}][options][${oIndex}][correct]`}
@@ -602,7 +628,7 @@ function OptionItem({option, qIndex, oIndex, onRemove, onChange, qType, uploadUr
                         width="w-auto"
                         padding="p-2"
                     >
-                        <TrashIcon className="h-5 w-5"/>
+                        <TrashIcon className="h-5 w-5" />
                     </Button>
                 </div>
 
@@ -620,7 +646,7 @@ function OptionItem({option, qIndex, oIndex, onRemove, onChange, qType, uploadUr
                     </div>
                 </If>
             </div>
-            <hr className="my-5 border-gray-200"/>
+            <hr className="my-5 border-gray-200" />
         </div>
     );
 }

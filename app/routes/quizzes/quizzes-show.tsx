@@ -33,7 +33,7 @@ export default function QuizzesShow() {
     }
 
     function showAnswer(answer: Answer, question: Question) {
-        if (question.type === QuestionType.Choice || question.type === QuestionType.MultipleCorrectChoices) {
+        if (question.type === QuestionType.Choice) {
             return (
                 <div className="flex flex-col space-y-1">
                     {question.options.map((option) => {
@@ -306,14 +306,6 @@ function EditResponseForm({ answer, question, onUpdated }: { answer: Answer, que
             return Number(selectedChoice);
         }
 
-        if (question.type === QuestionType.MultipleCorrectChoices) {
-            if (selectedMultiple.length === 0) {
-                return null;
-            }
-
-            return selectedMultiple.map((value) => Number(value));
-        }
-
         if (question.type === QuestionType.Reorder) {
             const entries = question.options.map((option) => ({
                 optionOrder: option.order,
@@ -411,21 +403,6 @@ function EditResponseForm({ answer, question, onUpdated }: { answer: Answer, que
                                         name={`answer-${answer.id}`}
                                         checked={selectedChoice === option.order.toString()}
                                         onChange={() => setSelectedChoice(option.order.toString())}
-                                    />
-                                    <span>{option.name}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </If>
-
-                    <If condition={question.type === QuestionType.MultipleCorrectChoices}>
-                        <div className="space-y-2">
-                            {question.options.map((option) => (
-                                <label key={option.id} className="flex items-center space-x-2 text-sm text-gray-700">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedMultiple.includes(option.order.toString())}
-                                        onChange={(event) => toggleMultipleChoice(option.order.toString(), event.target.checked)}
                                     />
                                     <span>{option.name}</span>
                                 </label>
