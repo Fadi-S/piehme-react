@@ -40,6 +40,7 @@ export default function QuizzesEdit() {
         questions: !quiz.questions ? [] : quiz.questions.map((question) => {
             return {
                 id: question.id,
+                clientId: Math.random().toString(36).substring(2, 11),
                 title: question.title,
                 points: question.coins,
                 correct_answers: question.answers,

@@ -109,6 +109,7 @@ export default function QuizzesForm({
             }
 
             const question: QuestionForm = {
+                clientId: "",
                 title: formData.get(`questions[${i}][title]`) as string,
                 points: parseInt(formData.get(`questions[${i}][points]`) as string),
                 type: formData.get(`questions[${i}][type]`) as QuestionType,
@@ -252,6 +253,7 @@ interface QuizForm {
 
 interface QuestionForm {
     id?: number
+    clientId: string
     title: string
     points: number
     type: QuestionType
@@ -293,19 +295,21 @@ const Questions = forwardRef<QuestionsHandle, QuestionsProps>((props, ref) => {
         picture: undefined,
     });
 
-    const emptyQuestion: QuestionForm = {
+    const emptyQuestion = (): QuestionForm => ({
         title: "",
+        clientId: generateClientId(),
         points: 0,
         type: QuestionType.Choice,
         correct_answers: [],
         picture: undefined,
         options: [emptyOption(1), emptyOption(2)]
-    }
+    });
 
     const [questions, setQuestions] = useState(() => {
-        if (!props.questions) return [emptyQuestion];
+        if (!props.questions) return [emptyQuestion()];
         return props.questions.map(question => ({
             ...question,
+            clientId: question.clientId || generateClientId(),
             options: question.options.map(opt => ({
                 ...opt,
                 clientId: opt.clientId || generateClientId(),
@@ -314,7 +318,7 @@ const Questions = forwardRef<QuestionsHandle, QuestionsProps>((props, ref) => {
     });
 
     const [isDirty, setIsDirty] = useState(false);
-    const initialQuestions = useRef(JSON.stringify(props.questions || [emptyQuestion]));
+    const initialQuestions = useRef(JSON.stringify(props.questions || [emptyQuestion()]));
 
     useEffect(() => {
         const current = JSON.stringify(questions);
@@ -349,7 +353,7 @@ const Questions = forwardRef<QuestionsHandle, QuestionsProps>((props, ref) => {
     };
 
     function addQuestion() {
-        setQuestions([...questions, emptyQuestion]);
+        setQuestions([...questions, emptyQuestion()]);
     }
 
     function removeQuestion(index: number) {
@@ -431,6 +435,16 @@ const Questions = forwardRef<QuestionsHandle, QuestionsProps>((props, ref) => {
         })
     );
 
+    function handleQuestionDragEnd(event: any) {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+
+        const oldIndex = questions.findIndex(q => q.clientId === active.id);
+        const newIndex = questions.findIndex(q => q.clientId === over.id);
+
+        wrappedSetQuestions(arrayMove(questions, oldIndex, newIndex));
+    }
+
     return (
         <div className="col-span-2 mt-4">
             {isDirty && (
@@ -447,125 +461,187 @@ const Questions = forwardRef<QuestionsHandle, QuestionsProps>((props, ref) => {
                 </Button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                {questions.map((question, index) => (
-                    <Card className="col-span-2 sm:col-span-1" title={`Question ${index + 1}`} key={index}>
-                        <Button
-                            color="red"
-                            onClick={() => removeQuestion(index)}
-                            width="w-auto"
-                        >
-                            <TrashIcon className="h-5 w-5 mr-2" />
-                            <div>Remove</div>
-                        </Button>
-
-                        <div className="mt-4 grid sm:grid-cols-2 gap-4 mb-8">
-                            <input type="hidden" name={`questions[${index}][id]`} value={question.id || ""} />
-                            <Textarea
-                                className="col-span-2"
-                                required
-                                rows={3}
-                                maxLength={500}
-                                id={"title-" + index}
-                                name={`questions[${index}][title]`}
-                                label="Title"
-                                value={question.title}
-                                onChange={(e) => changeState(index, "title", e.target.value)}
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleQuestionDragEnd}
+                modifiers={[restrictToVerticalAxis]}
+            >
+                <SortableContext
+                    items={questions.map(q => q.clientId)}
+                    strategy={verticalListSortingStrategy}
+                >
+                    <div className="grid grid-cols-2 gap-4">
+                        {questions.map((question, index) => (
+                            <SortableQuestionCard
+                                key={question.clientId}
+                                question={question}
+                                index={index}
+                                onRemove={() => removeQuestion(index)}
+                                onChangeState={changeState}
+                                onChangeStateOptions={changeStateOptions}
+                                onAddOption={() => addOption(index)}
+                                onRemoveOption={(oIndex) => removeOption(index, oIndex)}
+                                onOptionDragEnd={(e) => handleDragEnd(e, index)}
+                                sensors={sensors}
+                                uploadUrl={props.uploadUrl}
                             />
-                            <Input
-                                required
-                                id={"coins-" + index}
-                                name={`questions[${index}][points]`}
-                                type="number"
-                                label="Coins"
-                                value={question.points.toString()}
-                                onChange={(e) => changeState(index, "points", e.target.value)}
-                            />
-                            <Select
-                                required
-                                id={"type-" + index}
-                                name={`questions[${index}][type]`}
-                                label="Question Type"
-                                onChange={(e) => changeState(index, "type", e.target.value)}
-                                value={question.type}
-                                placeholder={"-- Choose a type --"}
-                                options={[
-                                    { label: "Choice", value: QuestionType.Choice },
-                                    { label: "Reorder", value: QuestionType.Reorder },
-                                    { label: "Written", value: QuestionType.Written },
-                                ]}
-                            />
+                        ))}
 
-                            <div className="col-span-2">
-                                <FileInputUpload
-                                    id={`question-image-${index}`}
-                                    name={`questions[${index}][picture]`}
-                                    uploadUrl={props.uploadUrl}
-                                    onUpload={(path, url) => changeState(index, "picture", path)}
-                                    onDelete={() => changeState(index, "picture", "removed")}
-                                    picture={question.picture}
-                                    pictureDisplay={question.picture === "removed" ? undefined : question.picture}
-                                />
-                            </div>
-
-                            <div className="col-span-2">
-                                <label className="mb-4 block text-sm/6 font-medium text-gray-600">
-                                    Options
-                                </label>
-                                <DndContext
-                                    sensors={sensors}
-                                    collisionDetection={closestCenter}
-                                    onDragEnd={(e) => handleDragEnd(e, index)}
-                                    modifiers={[restrictToVerticalAxis]}
-                                >
-                                    <SortableContext
-                                        items={question.options.map(o => o.clientId)}
-                                        strategy={verticalListSortingStrategy}
-                                    >
-                                        {question.options.map((option, oIndex) => (
-                                            <OptionItem
-                                                key={option.clientId}
-                                                option={option}
-                                                qIndex={index}
-                                                oIndex={oIndex}
-                                                onRemove={() => removeOption(index, oIndex)}
-                                                onChange={changeStateOptions}
-                                                qType={question.type}
-                                                uploadUrl={props.uploadUrl}
-                                            />
-                                        ))}
-                                    </SortableContext>
-                                </DndContext>
-                                <Button
-                                    type="button"
-                                    color="light-blue"
-                                    onClick={() => addOption(index)}
-                                    className="mt-2"
-                                    width="w-auto mx-auto"
-                                >
-                                    <div className="flex items-center">
-                                        <PlusIcon className="h-5 w-5 mr-2" />
-                                        <span>Add Option</span>
-                                    </div>
+                        <Card className="flex items-center justify-center min-h-64 col-span-2 sm:col-span-1">
+                            <div className="flex items-center justify-center w-full mt-4">
+                                <Button color="green" onClick={addQuestion} width="w-auto">
+                                    <PlusIcon className="h-5 w-5 mr-2" />
+                                    <div>Add Question</div>
                                 </Button>
                             </div>
-                        </div>
-                    </Card>
-                ))}
-
-                <Card className="flex items-center justify-center min-h-64 col-span-2 sm:col-span-1">
-                    <div className="flex items-center justify-center w-full mt-4">
-                        <Button color="green" onClick={addQuestion} width="w-auto">
-                            <PlusIcon className="h-5 w-5 mr-2" />
-                            <div>Add Question</div>
-                        </Button>
+                        </Card>
                     </div>
-                </Card>
-            </div>
+                </SortableContext>
+            </DndContext>
 
         </div>
     );
 });
+
+interface SortableQuestionCardProps {
+    question: QuestionForm;
+    index: number;
+    onRemove: () => void;
+    onChangeState: (index: number, key: string, value: string) => void;
+    onChangeStateOptions: (qIndex: number, oIndex: number, key: string, value: any) => void;
+    onAddOption: () => void;
+    onRemoveOption: (oIndex: number) => void;
+    onOptionDragEnd: (event: any) => void;
+    sensors: ReturnType<typeof useSensors>;
+    uploadUrl: string;
+}
+
+function SortableQuestionCard({
+    question, index, onRemove, onChangeState, onChangeStateOptions,
+    onAddOption, onRemoveOption, onOptionDragEnd, sensors, uploadUrl
+}: SortableQuestionCardProps) {
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+        id: question.clientId,
+    });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} className="col-span-2 sm:col-span-1">
+            <Card title={`Question ${index + 1}`}>
+                <div className="flex items-center justify-between mb-2">
+                    <div {...attributes} {...listeners} className="cursor-move p-1 rounded hover:bg-gray-100" title="Drag to reorder">
+                        <Bars2Icon className="h-6 w-6 text-gray-400" />
+                    </div>
+                    <Button
+                        color="red"
+                        onClick={onRemove}
+                        width="w-auto"
+                    >
+                        <TrashIcon className="h-5 w-5 mr-2" />
+                        <div>Remove</div>
+                    </Button>
+                </div>
+
+                <div className="mt-4 grid sm:grid-cols-2 gap-4 mb-8">
+                    <input type="hidden" name={`questions[${index}][id]`} value={question.id || ""} />
+                    <Textarea
+                        className="col-span-2"
+                        required
+                        rows={3}
+                        maxLength={500}
+                        id={"title-" + index}
+                        name={`questions[${index}][title]`}
+                        label="Title"
+                        value={question.title}
+                        onChange={(e) => onChangeState(index, "title", e.target.value)}
+                    />
+                    <Input
+                        required
+                        id={"coins-" + index}
+                        name={`questions[${index}][points]`}
+                        type="number"
+                        label="Coins"
+                        value={question.points.toString()}
+                        onChange={(e) => onChangeState(index, "points", e.target.value)}
+                    />
+                    <Select
+                        required
+                        id={"type-" + index}
+                        name={`questions[${index}][type]`}
+                        label="Question Type"
+                        onChange={(e) => onChangeState(index, "type", e.target.value)}
+                        value={question.type}
+                        placeholder={"-- Choose a type --"}
+                        options={[
+                            { label: "Choice", value: QuestionType.Choice },
+                            { label: "Reorder", value: QuestionType.Reorder },
+                            { label: "Written", value: QuestionType.Written },
+                        ]}
+                    />
+
+                    <div className="col-span-2">
+                        <FileInputUpload
+                            id={`question-image-${index}`}
+                            name={`questions[${index}][picture]`}
+                            uploadUrl={uploadUrl}
+                            onUpload={(path, url) => onChangeState(index, "picture", path)}
+                            onDelete={() => onChangeState(index, "picture", "removed")}
+                            picture={question.picture}
+                            pictureDisplay={question.picture === "removed" ? undefined : question.picture}
+                        />
+                    </div>
+
+                    <div className="col-span-2">
+                        <label className="mb-4 block text-sm/6 font-medium text-gray-600">
+                            Options
+                        </label>
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={onOptionDragEnd}
+                            modifiers={[restrictToVerticalAxis]}
+                        >
+                            <SortableContext
+                                items={question.options.map(o => o.clientId)}
+                                strategy={verticalListSortingStrategy}
+                            >
+                                {question.options.map((option, oIndex) => (
+                                    <OptionItem
+                                        key={option.clientId}
+                                        option={option}
+                                        qIndex={index}
+                                        oIndex={oIndex}
+                                        onRemove={() => onRemoveOption(oIndex)}
+                                        onChange={onChangeStateOptions}
+                                        qType={question.type}
+                                        uploadUrl={uploadUrl}
+                                    />
+                                ))}
+                            </SortableContext>
+                        </DndContext>
+                        <Button
+                            type="button"
+                            color="light-blue"
+                            onClick={onAddOption}
+                            className="mt-2"
+                            width="w-auto mx-auto"
+                        >
+                            <div className="flex items-center">
+                                <PlusIcon className="h-5 w-5 mr-2" />
+                                <span>Add Option</span>
+                            </div>
+                        </Button>
+                    </div>
+                </div>
+            </Card>
+        </div>
+    );
+}
 
 interface OptionItemProps {
     option: OptionForm;
