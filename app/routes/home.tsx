@@ -40,6 +40,10 @@ export default function Home() {
     const [sort, setSort] = React.useState<"overall" | "nerfed" | "coins">(
         initialSort === "nerfed" || initialSort === "coins" ? initialSort : "overall"
     );
+    const previousFiltersRef = React.useRef({
+        search: searchParams.get("search") ?? "",
+        sort: initialSort === "nerfed" || initialSort === "coins" ? initialSort : "overall"
+    });
 
     const { data: usersDefault, isLoading: isLoadingDefault, refetch: refetchDefault } = useGetUsersQuery({ page, search: debouncedSearchTerm });
     const { data: usersNerfed, isLoading: isLoadingNerfed, refetch: refetchNerfed } = useGetUsersNerfedQuery({ page, search: debouncedSearchTerm });
@@ -60,11 +64,38 @@ export default function Home() {
     const [isExporting, setIsExporting] = React.useState(false);
 
     useEffect(() => {
-        const states: { search?: string; sort?: string } = {};
-        if (debouncedSearchTerm) states.search = debouncedSearchTerm;
-        if (sort && sort !== "overall") states.sort = sort;
-        setSearchParams(states);
-    }, [debouncedSearchTerm, sort]);
+        const nextParams = new URLSearchParams(searchParams);
+        const previousFilters = previousFiltersRef.current;
+        const filtersChanged = previousFilters.search !== debouncedSearchTerm || previousFilters.sort !== sort;
+
+        if (debouncedSearchTerm) {
+            nextParams.set("search", debouncedSearchTerm);
+        } else {
+            nextParams.delete("search");
+        }
+
+        if (sort !== "overall") {
+            nextParams.set("sort", sort);
+        } else {
+            nextParams.delete("sort");
+        }
+
+        if (filtersChanged) {
+            nextParams.delete("page");
+        }
+
+        const nextParamsString = nextParams.toString();
+        const currentParamsString = searchParams.toString();
+
+        previousFiltersRef.current = {
+            search: debouncedSearchTerm,
+            sort
+        };
+
+        if (nextParamsString !== currentParamsString) {
+            setSearchParams(nextParams);
+        }
+    }, [debouncedSearchTerm, searchParams, setSearchParams, sort]);
 
     useEffect(() => {
         if (isConfirmSuccess) {

@@ -13,16 +13,20 @@ interface PaginationProps {
 export type { PaginationProps };
 
 export default function Pagination({
-                                       page,
-                                       size,
-                                       totalElements,
-                                       totalPages,
-                                       queryParam = "page",
-                                   }: PaginationProps) {
+    page,
+    size,
+    totalElements,
+    totalPages,
+    queryParam = "page",
+}: PaginationProps) {
     const url = window.location.pathname;
 
     const buildPageUrl = (pg: number) =>
-        `${url}?${new URLSearchParams({ [queryParam]: pg.toString() }).toString()}`;
+        (() => {
+            const params = new URLSearchParams(window.location.search);
+            params.set(queryParam, pg.toString());
+            return `${url}?${params.toString()}`;
+        })();
 
     const nextPageUrl = useMemo(() => {
         if (page === totalPages) return window.location.href;
@@ -68,7 +72,7 @@ export default function Pagination({
 
     const pages = paginationRange();
 
-    if(totalPages <= 1) return null;
+    if (totalPages <= 1) return null;
 
     return (
         <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
@@ -106,9 +110,8 @@ export default function Pagination({
                     <nav aria-label="Pagination" className="isolate inline-flex -space-x-px rounded-md shadow-sm">
                         <Link
                             to={prevPageUrl}
-                            className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${
-                                page === 1 ? "cursor-default" : ""
-                            }`}
+                            className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${page === 1 ? "cursor-default" : ""
+                                }`}
                         >
                             <span className="sr-only">Previous</span>
                             <ChevronLeftIcon aria-hidden="true" className="h-5 w-5" />
@@ -121,8 +124,8 @@ export default function Pagination({
                                         key={idx}
                                         className="cursor-default relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300"
                                     >
-                    ...
-                  </span>
+                                        ...
+                                    </span>
                                 );
                             }
 
@@ -130,11 +133,10 @@ export default function Pagination({
                                 <Link
                                     key={idx}
                                     to={buildPageUrl(pg as number)}
-                                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                                        page === pg
+                                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${page === pg
                                             ? "z-10 bg-blue-600 text-white cursor-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                                             : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                                    }`}
+                                        }`}
                                 >
                                     {pg}
                                 </Link>
@@ -143,9 +145,8 @@ export default function Pagination({
 
                         <Link
                             to={nextPageUrl}
-                            className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${
-                                page === totalPages ? "cursor-default" : ""
-                            }`}
+                            className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${page === totalPages ? "cursor-default" : ""
+                                }`}
                         >
                             <span className="sr-only">Next</span>
                             <ChevronRightIcon aria-hidden="true" className="h-5 w-5" />
