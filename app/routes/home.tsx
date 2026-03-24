@@ -129,6 +129,24 @@ export default function Home() {
         return user.lineupRating + Math.sqrt(Math.max(user.chemistry ?? 0, 0)) * 0.25;
     }
 
+    function compareUsers(a: User, b: User) {
+        if (sort === "coins") {
+            return (b.totalCoinsEarned ?? 0) - (a.totalCoinsEarned ?? 0)
+                || b.lineupRating - a.lineupRating
+                || a.id - b.id;
+        }
+
+        if (sort === "nerfed") {
+            return getNerfedScore(b) - getNerfedScore(a)
+                || (b.totalCoinsEarned ?? 0) - (a.totalCoinsEarned ?? 0)
+                || a.id - b.id;
+        }
+
+        return getOverallScore(b) - getOverallScore(a)
+            || (b.totalCoinsEarned ?? 0) - (a.totalCoinsEarned ?? 0)
+            || a.id - b.id;
+    }
+
     function getActiveScore(user: User) {
         if (sort === "coins") {
             return user.totalCoinsEarned ?? 0;
@@ -207,9 +225,7 @@ export default function Home() {
         let csv = "Position,Username,Score,Coins\n";
         const filteredUsers = allUsersList.filter((user: User) => user.lineupRating > 0);
 
-        const sortedUsers = sort === "coins"
-            ? [...filteredUsers].sort((a, b) => (b.totalCoinsEarned ?? 0) - (a.totalCoinsEarned ?? 0))
-            : [...filteredUsers].sort((a, b) => getActiveScore(b) - getActiveScore(a));
+        const sortedUsers = [...filteredUsers].sort(compareUsers);
 
         let currentPosition = 1;
         let previousScore: number | null = null;
