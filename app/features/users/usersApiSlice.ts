@@ -41,6 +41,16 @@ export const usersApiSlice = createApi({
 
         }),
 
+        getUsersNerfed: build.query<Pagination<User>, PageRequest>({
+            query: (req: PageRequest) => {
+                let url = "ostaz/users/nerfed";
+                url += queryParamsFromRequest(req);
+
+                return { url, method: "GET", };
+            },
+
+        }),
+
         getUsersByCoins: build.query<Pagination<User>, PageRequest>({
             query: (req: PageRequest) => {
                 let url = "ostaz/users/coins";
@@ -173,4 +183,21 @@ export const usersApiSlice = createApi({
     }),
 })
 
-export const { useGetUsersQuery, useGetUsersByCoinsQuery, useGetAllUsersQuery, useGetAllUsersByCoinsQuery, useGetUserQuery, useCreateUsersBulkMutation, useDeleteUserMutation, useConfirmMutation, useChangeImageMutation, useAddCoinsMutation, useRemoveCoinsMutation, useChangePasswordMutation, useCreateUserMutation, useShowInLeaderboardMutation, useHideFromLeaderboardMutation } = usersApiSlice;
+export const {
+    useGetUsersQuery,
+    useGetUsersNerfedQuery,
+    useGetUsersByCoinsQuery,
+    useGetAllUsersQuery,
+    useGetAllUsersByCoinsQuery,
+    useGetUserQuery,
+    useCreateUsersBulkMutation,
+    useDeleteUserMutation,
+    useConfirmMutation,
+    useChangeImageMutation,
+    useAddCoinsMutation,
+    useRemoveCoinsMutation,
+    useChangePasswordMutation,
+    useCreateUserMutation,
+    useShowInLeaderboardMutation,
+    useHideFromLeaderboardMutation
+} = usersApiSlice;

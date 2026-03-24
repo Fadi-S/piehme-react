@@ -10,6 +10,7 @@ import {
     useCreateUserMutation,
     useCreateUsersBulkMutation,
     useGetUsersQuery,
+    useGetUsersNerfedQuery,
     useGetUsersByCoinsQuery
 } from "~/features/users/usersApiSlice";
 import type { User } from "~/features/users/usersApiSlice";
@@ -34,14 +35,18 @@ export default function Home() {
 
     const [search, setSearch] = React.useState(searchParams.get("search") ?? "");
     const debouncedSearchTerm = useDebounce(search, 100);
-    const initialSort = (searchParams.get("sort") ?? "default") as "default" | "coins";
-    const [sort, setSort] = React.useState<"default" | "coins">(initialSort);
+    const initialSortParam = searchParams.get("sort") ?? "overall";
+    const initialSort = initialSortParam === "default" ? "overall" : initialSortParam;
+    const [sort, setSort] = React.useState<"overall" | "nerfed" | "coins">(
+        initialSort === "nerfed" || initialSort === "coins" ? initialSort : "overall"
+    );
 
     const { data: usersDefault, isLoading: isLoadingDefault, refetch: refetchDefault } = useGetUsersQuery({ page, search: debouncedSearchTerm });
+    const { data: usersNerfed, isLoading: isLoadingNerfed, refetch: refetchNerfed } = useGetUsersNerfedQuery({ page, search: debouncedSearchTerm });
     const { data: usersCoins, isLoading: isLoadingCoins, refetch: refetchCoins } = useGetUsersByCoinsQuery({ page, search: debouncedSearchTerm });
-    const users = sort === "coins" ? usersCoins : usersDefault;
-    const isLoading = sort === "coins" ? isLoadingCoins : isLoadingDefault;
-    const refetch = sort === "coins" ? refetchCoins : refetchDefault;
+    const users = sort === "coins" ? usersCoins : sort === "nerfed" ? usersNerfed : usersDefault;
+    const isLoading = sort === "coins" ? isLoadingCoins : sort === "nerfed" ? isLoadingNerfed : isLoadingDefault;
+    const refetch = sort === "coins" ? refetchCoins : sort === "nerfed" ? refetchNerfed : refetchDefault;
 
     const [open, setOpen] = React.useState(false);
     const [openBulk, setOpenBulk] = React.useState(false);
@@ -57,7 +62,7 @@ export default function Home() {
     useEffect(() => {
         const states: { search?: string; sort?: string } = {};
         if (debouncedSearchTerm) states.search = debouncedSearchTerm;
-        if (sort && sort !== "default") states.sort = sort;
+        if (sort && sort !== "overall") states.sort = sort;
         setSearchParams(states);
     }, [debouncedSearchTerm, sort]);
 
@@ -116,6 +121,38 @@ export default function Home() {
         return csv;
     }
 
+    function getOverallScore(user: User) {
+        return user.lineupRating + (user.chemistry ?? 0);
+    }
+
+    function getNerfedScore(user: User) {
+        return user.lineupRating + Math.sqrt(Math.max(user.chemistry ?? 0, 0)) * 0.25;
+    }
+
+    function getActiveScore(user: User) {
+        if (sort === "coins") {
+            return user.totalCoinsEarned ?? 0;
+        }
+
+        if (sort === "nerfed") {
+            return getNerfedScore(user);
+        }
+
+        return getOverallScore(user);
+    }
+
+    function formatDisplayedScore(user: User) {
+        if (sort === "coins") {
+            return getActiveScore(user);
+        }
+
+        if (sort === "nerfed") {
+            return getNerfedScore(user).toFixed(2);
+        }
+
+        return Math.floor(getOverallScore(user));
+    }
+
     async function fetchAllUsers() {
         const allUsersList: User[] = [];
         let page = 0;
@@ -125,7 +162,9 @@ export default function Home() {
             const headers = new Headers();
             defaultHeaders(headers);
 
-            const response = await fetch(`${ROOT_URL}/ostaz/users${sort === "coins" ? "/coins" : ""}?page=${page}&size=1000`, {
+            const usersPath = sort === "coins" ? "/ostaz/users/coins" : sort === "nerfed" ? "/ostaz/users/nerfed" : "/ostaz/users";
+
+            const response = await fetch(`${ROOT_URL}${usersPath}?page=${page}&size=1000`, {
                 headers: headers
             });
 
@@ -168,25 +207,22 @@ export default function Home() {
         let csv = "Position,Username,Score,Coins\n";
         const filteredUsers = allUsersList.filter((user: User) => user.lineupRating > 0);
 
-        // Sort users based on current sort selection
         const sortedUsers = sort === "coins"
             ? [...filteredUsers].sort((a, b) => (b.totalCoinsEarned ?? 0) - (a.totalCoinsEarned ?? 0))
-            : [...filteredUsers].sort((a, b) => (b.lineupRating + (b.chemistry ?? 0)) - (a.lineupRating + (a.chemistry ?? 0)));
+            : [...filteredUsers].sort((a, b) => getActiveScore(b) - getActiveScore(a));
 
         let currentPosition = 1;
         let previousScore: number | null = null;
         let usersAtCurrentPosition = 0;
 
         sortedUsers.forEach((user: User) => {
-            const score = sort === "coins" ? (user.totalCoinsEarned ?? 0) : (user.lineupRating + (user.chemistry ?? 0));
+            const score = getActiveScore(user);
 
-            // If this is the first user or has a different score, update position
             if (previousScore === null || score !== previousScore) {
                 currentPosition += usersAtCurrentPosition;
                 usersAtCurrentPosition = 1;
                 previousScore = score;
             } else {
-                // Same score as previous, increment count but not position
                 usersAtCurrentPosition++;
             }
 
@@ -218,6 +254,8 @@ export default function Home() {
         return <Loading />;
     }
 
+    const scoreHeader = sort === "nerfed" ? "Nerfed Rating" : "Overall Rating";
+
     return (
         <div>
             <Card>
@@ -232,13 +270,29 @@ export default function Home() {
                         />
                     </div>
                     <div className="order-first sm:order-none w-full sm:w-auto flex justify-center mt-4 sm:mt-0">
-                        <Button
-                            color={sort === "coins" ? "light-blue" : "gray"}
-                            type="button"
-                            onClick={() => setSort(prev => (prev === "coins" ? "default" : "coins"))}
-                        >
-                            {sort === "coins" ? "Sort by Overall Rating" : "Sort by Earned Coins"}
-                        </Button>
+                        <div className="inline-flex rounded-lg border border-gray-200 bg-gray-100 p-1">
+                            <button
+                                type="button"
+                                onClick={() => setSort("overall")}
+                                className={`rounded-md px-4 py-2 text-sm font-semibold transition ${sort === "overall" ? "bg-white text-blue-600 shadow-sm" : "text-gray-600"}`}
+                            >
+                                Overall Rating
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setSort("nerfed")}
+                                className={`rounded-md px-4 py-2 text-sm font-semibold transition ${sort === "nerfed" ? "bg-white text-blue-600 shadow-sm" : "text-gray-600"}`}
+                            >
+                                Nerfed Rating
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setSort("coins")}
+                                className={`rounded-md px-4 py-2 text-sm font-semibold transition ${sort === "coins" ? "bg-white text-blue-600 shadow-sm" : "text-gray-600"}`}
+                            >
+                                Earned Coins
+                            </button>
+                        </div>
                     </div>
                     <div className="mt-4 sm:mt-0 sm:ml-16 flex items-center justify-between space-x-4">
 
@@ -360,10 +414,10 @@ export default function Home() {
                     header={<tr className="text-center">
                         <Th>ID</Th>
                         <Th>Name</Th>
-                        <If condition={sort === "default"}>
+                        <If condition={sort !== "coins"}>
                             <Th>Lienup Rating</Th>
                             <Th>Chemistry</Th>
-                            <Th>Overall Rating</Th>
+                            <Th>{scoreHeader}</Th>
                         </If>
                         <If condition={sort === "coins"}>
                             <Th>Total Coins Earned</Th>
@@ -386,7 +440,7 @@ export default function Home() {
                                     </div>
                                 </div>
                             </Td>
-                            <If condition={sort === "default"}>
+                            <If condition={sort !== "coins"}>
                                 <Td>
                                     <div className="mt-1 text-gray-500">{user.lineupRating}</div>
                                 </Td>
@@ -394,7 +448,7 @@ export default function Home() {
                                     <div className="mt-1 text-gray-500">{user.chemistry}</div>
                                 </Td>
                                 <Td>
-                                    <div className="mt-1 text-gray-500">{Math.floor((user.lineupRating + (user.chemistry ?? 0)))}</div>
+                                    <div className="mt-1 text-gray-500">{formatDisplayedScore(user)}</div>
                                 </Td>
                             </If>
                             <If condition={sort === "coins"}>
