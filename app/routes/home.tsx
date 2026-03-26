@@ -196,10 +196,10 @@ export default function Home() {
         }
 
         if (sort === "nerfed") {
-            return getNerfedScore(user).toFixed(2);
+            return getNerfedScore(user).toFixed(4);
         }
 
-        return Math.floor(getOverallScore(user));
+        return getOverallScore(user).toFixed(4);
     }
 
     async function fetchAllUsers() {
