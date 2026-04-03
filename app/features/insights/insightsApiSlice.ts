@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ROOT_URL } from "~/base/consts";
 import { defaultHeaders } from "~/base/helpers";
+import { type PageRequest, type Pagination, queryParamsFromRequest } from "~/types/pagination";
 
 interface UserMetricRow {
     rank: number;
@@ -100,6 +101,17 @@ interface AdminStatsPage {
     leaderboardComparisonChart: ChartPoint[];
 }
 
+interface AttemptedAllQuizUser {
+    userId: number;
+    username: string;
+    imageUrl: string | null;
+    imageKey: string | null;
+    overallScore: number;
+    totalCoinsEarned: number;
+    attemptedQuizzesCount: number;
+    publishedQuizzesCount: number;
+}
+
 function withLimit(limit: number) {
     return limit > 10 ? 20 : 10;
 }
@@ -147,6 +159,10 @@ export const insightsApiSlice = createApi({
         getQuestionDistribution: build.query<ChoiceDistribution | null, number>({
             query: (questionId) => `ostaz/insights/stats/questions/${questionId}/distribution`,
         }),
+
+        getUsersAttemptedAllQuizzes: build.query<Pagination<AttemptedAllQuizUser>, PageRequest>({
+            query: (req) => `ostaz/insights/stats/users/attempted-all${queryParamsFromRequest(req)}`,
+        }),
     }),
 });
 
@@ -159,6 +175,7 @@ export const {
     useGetHardestQuestionsQuery,
     useGetHardestQuestionsForQuizQuery,
     useGetQuestionDistributionQuery,
+    useGetUsersAttemptedAllQuizzesQuery,
 } = insightsApiSlice;
 
 export type {
@@ -172,4 +189,5 @@ export type {
     ChoiceDistribution,
     ChoiceDistributionOption,
     ChartPoint,
+    AttemptedAllQuizUser,
 };

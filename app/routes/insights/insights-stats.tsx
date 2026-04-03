@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import type { Route } from "./+types/insights-stats";
+import { useSearchParams } from "react-router";
 import Card from "~/components/card";
 import Loading from "~/components/loading";
 import Button from "~/components/button";
@@ -14,6 +15,8 @@ import {
     useGetTopEarnedCoinsUsersQuery,
     useGetTopOverallUsersQuery,
     useGetTopValueUsersQuery,
+    useGetUsersAttemptedAllQuizzesQuery,
+    type AttemptedAllQuizUser,
     type BestSeller,
     type ChoiceDistributionOption,
     type HardestQuestion,
@@ -47,12 +50,14 @@ function percentage(value: number) {
 function LeaderboardTable({
     title,
     metricLabel,
+    secondaryLabel,
     users,
     expanded,
     onToggle,
 }: {
     title: string;
     metricLabel: string;
+    secondaryLabel: string;
     users: UserMetricRow[];
     expanded: boolean;
     onToggle: () => void;
@@ -71,8 +76,7 @@ function LeaderboardTable({
                     <tr>
                         <Th>#</Th>
                         <Th>Name</Th>
-                        <Th>Overall</Th>
-                        <Th>Coins</Th>
+                        <Th>{secondaryLabel}</Th>
                         <Th>{metricLabel}</Th>
                     </tr>
                 )}
@@ -87,8 +91,7 @@ function LeaderboardTable({
                                 <div className="font-medium text-gray-900">{user.username}</div>
                             </div>
                         </Td>
-                        <Td>{formatMetric(user.overallScore)}</Td>
-                        <Td>${user.currentCoins}</Td>
+                        <Td>{secondaryLabel === "Earned Coins" ? user.totalCoinsEarned : formatMetric(user.overallScore)}</Td>
                         <Td className="font-semibold text-gray-700">{formatMetric(user.metricValue)}</Td>
                     </tr>
                 )}
@@ -98,6 +101,7 @@ function LeaderboardTable({
 }
 
 export default function InsightsStats() {
+    const [searchParams] = useSearchParams();
     const { data, isLoading } = useGetAdminStatsPageQuery();
     const [overallExpanded, setOverallExpanded] = useState(false);
     const [coinsExpanded, setCoinsExpanded] = useState(false);
@@ -106,6 +110,7 @@ export default function InsightsStats() {
     const [questionsExpanded, setQuestionsExpanded] = useState(false);
     const [selectedQuizSlug, setSelectedQuizSlug] = useState<string>("");
     const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null);
+    const attemptedAllPage = Math.max(Number(searchParams.get("page") ?? "1") || 1, 1);
 
     const { data: overallUsers = [] } = useGetTopOverallUsersQuery(overallExpanded ? 20 : 10);
     const { data: earnedCoinUsers = [] } = useGetTopEarnedCoinsUsersQuery(coinsExpanded ? 20 : 10);
@@ -119,6 +124,7 @@ export default function InsightsStats() {
     const { data: distribution } = useGetQuestionDistributionQuery(selectedQuestionId ?? 0, {
         skip: selectedQuestionId === null,
     });
+    const { data: attemptedAllUsers } = useGetUsersAttemptedAllQuizzesQuery({ page: attemptedAllPage, size: 10 });
 
     useEffect(() => {
         if (!data) {
@@ -166,6 +172,7 @@ export default function InsightsStats() {
                 <LeaderboardTable
                     title="Top Overall Rating"
                     metricLabel="Overall Score"
+                    secondaryLabel="Earned Coins"
                     users={overallUsers}
                     expanded={overallExpanded}
                     onToggle={() => setOverallExpanded((current) => !current)}
@@ -173,6 +180,7 @@ export default function InsightsStats() {
                 <LeaderboardTable
                     title="Top Earned Coins"
                     metricLabel="Earned Coins"
+                    secondaryLabel="Overall Rating"
                     users={earnedCoinUsers}
                     expanded={coinsExpanded}
                     onToggle={() => setCoinsExpanded((current) => !current)}
@@ -180,6 +188,7 @@ export default function InsightsStats() {
                 <LeaderboardTable
                     title="Best Rating Per 1,000 Spent"
                     metricLabel="Value Score"
+                    secondaryLabel="Overall Rating"
                     users={valueUsers}
                     expanded={valueExpanded}
                     onToggle={() => setValueExpanded((current) => !current)}
@@ -187,11 +196,41 @@ export default function InsightsStats() {
                 <LeaderboardTable
                     title="Most Approved Attendances"
                     metricLabel="Approved Count"
+                    secondaryLabel="Overall Rating"
                     users={attendanceUsers}
                     expanded={attendanceExpanded}
                     onToggle={() => setAttendanceExpanded((current) => !current)}
                 />
             </div>
+
+            <Card title="Users Who Attempted All Quizzes">
+                <Table
+                    pagination={attemptedAllUsers ?? createStaticPagination<AttemptedAllQuizUser>([])}
+                    header={(
+                        <tr>
+                            <Th>Name</Th>
+                            <Th>Overall</Th>
+                            <Th>Earned Coins</Th>
+                            <Th>Attempts</Th>
+                        </tr>
+                    )}
+                    body={(user: AttemptedAllQuizUser) => (
+                        <tr key={`attempted-all-${user.userId}`}>
+                            <Td>
+                                <div className="flex items-center justify-center gap-3">
+                                    {user.imageUrl && (
+                                        <img src={user.imageUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
+                                    )}
+                                    <div className="font-medium text-gray-900">{user.username}</div>
+                                </div>
+                            </Td>
+                            <Td>{formatMetric(user.overallScore)}</Td>
+                            <Td>{user.totalCoinsEarned}</Td>
+                            <Td>{user.attemptedQuizzesCount} / {user.publishedQuizzesCount}</Td>
+                        </tr>
+                    )}
+                />
+            </Card>
 
             <div className="grid gap-6 xl:grid-cols-2">
                 <Card title="Quiz Difficulty">
