@@ -15,6 +15,7 @@ export default [
         route("/admins", "./routes/admins/admins-index.tsx"),
         route("/admins/create", "./routes/admins/admins-create.tsx"),
         route("/admins/:adminId/edit", "./routes/admins/admins-edit.tsx"),
+        route("/insights/stats", "./routes/insights/insights-stats.tsx"),
 
         route("/prices", "./routes/prices/prices-index.tsx"),
         route("/prices/create", "./routes/prices/prices-create.tsx"),

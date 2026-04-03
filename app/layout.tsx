@@ -11,7 +11,7 @@ import {
     CogIcon,
     UserGroupIcon,
     BuildingLibraryIcon,
-    DocumentCheckIcon, PowerIcon, IdentificationIcon, CurrencyDollarIcon, PencilIcon
+    DocumentCheckIcon, PowerIcon, IdentificationIcon, CurrencyDollarIcon, PencilIcon, ChartBarSquareIcon
 } from '@heroicons/react/24/outline'
 import Logo from "~/components/logo";
 import { useDispatch } from "react-redux";
@@ -58,6 +58,7 @@ export default function Layout() {
                 navigation.push({ name: 'Icons', href: '/icons', icon: IdentificationIcon, current: false });
                 navigation.push({ name: 'Players', href: '/players', icon: UserGroupIcon, current: false });
                 navigation.push({ name: 'Admins', href: '/admins', icon: BuildingLibraryIcon, current: false });
+                navigation.push({ name: 'Stats', href: '/insights/stats', icon: ChartBarSquareIcon, current: false });
                 navigation.push({ name: 'Controls', href: '/controls', icon: CogIcon, current: false });
                 navigation.push({ name: 'Prices', href: '/prices', icon: CurrencyDollarIcon, current: false });
             }
@@ -219,4 +220,3 @@ export default function Layout() {
         </>
     )
 }
-
