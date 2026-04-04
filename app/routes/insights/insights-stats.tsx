@@ -93,6 +93,10 @@ function getPageRequest(page = 1, size = PAGE_SIZE): PageRequest {
     return { page, size };
 }
 
+function shouldShowLoadingPlaceholder(isLoading: boolean, isFetching?: boolean, pendingSelection?: boolean) {
+    return isLoading || !!isFetching || !!pendingSelection;
+}
+
 function supportsDistribution(questionType?: string | null) {
     return questionType === "Choice" || questionType === "MultipleCorrectChoices";
 }
@@ -281,6 +285,7 @@ function HardestQuestionsTable({
     hidePagination = false,
     onPageChange,
     selectedQuestionId,
+    pendingQuestionId,
     onSelectQuestion,
 }: {
     pagination?: PaginationType<HardestQuestion>;
@@ -289,6 +294,7 @@ function HardestQuestionsTable({
     hidePagination?: boolean;
     onPageChange?: (page: number) => void;
     selectedQuestionId: number | null;
+    pendingQuestionId?: number | null;
     onSelectQuestion: (questionId: number) => void;
 }) {
     const questions = pagination?.data ?? [];
@@ -313,11 +319,11 @@ function HardestQuestionsTable({
             body={(question: HardestQuestion) => (
                 <tr
                     key={`question-${question.questionId}`}
-                    className={`cursor-pointer ${selectedQuestionId === question.questionId ? "bg-amber-50" : ""}`}
+                    className={`cursor-pointer ${selectedQuestionId === question.questionId ? "bg-amber-50" : ""} ${pendingQuestionId === question.questionId ? "opacity-60" : ""}`}
                     onClick={() => onSelectQuestion(question.questionId)}
                 >
                     <Td>{question.quizName}</Td>
-                    <Td className="max-w-xs whitespace-normal text-left text-gray-700">{question.questionTitle}</Td>
+                    <Td className="max-w-xs truncate text-left text-gray-700" title={question.questionTitle}>{question.questionTitle}</Td>
                     <Td>{percentage(question.accuracy)}</Td>
                     <Td>{question.attempts}</Td>
                 </tr>
@@ -363,7 +369,7 @@ function QuizQuestionsTable({
             )}
             body={(question: HardestQuestion) => (
                 <tr key={`quiz-question-${question.questionId}`}>
-                    <Td className="max-w-xs whitespace-normal text-left text-gray-700">{question.questionTitle}</Td>
+                    <Td className="max-w-xs truncate text-left text-gray-700" title={question.questionTitle}>{question.questionTitle}</Td>
                     <Td>{percentage(question.accuracy)}</Td>
                     <Td>{question.attempts}</Td>
                 </tr>
@@ -470,10 +476,12 @@ function DistributionPanel({
 function QuizSelector({
     quizzes,
     selectedQuizSlug,
+    pendingQuizSlug,
     onSelect,
 }: {
     quizzes: QuizDifficulty[];
     selectedQuizSlug: string;
+    pendingQuizSlug?: string | null;
     onSelect: (slug: string) => void;
 }) {
     if (quizzes.length === 0) {
@@ -485,11 +493,12 @@ function QuizSelector({
             {quizzes.map((quiz) => (
                 <Button
                     key={quiz.quizSlug}
-                    color={selectedQuizSlug === quiz.quizSlug ? "primary" : "gray"}
+                    color={selectedQuizSlug === quiz.quizSlug && pendingQuizSlug !== quiz.quizSlug ? "primary" : "gray"}
                     width="w-auto"
                     onClick={() => onSelect(quiz.quizSlug)}
+                    className={pendingQuizSlug === quiz.quizSlug ? "opacity-70" : ""}
                 >
-                    {quiz.quizName}
+                    {pendingQuizSlug === quiz.quizSlug ? `Loading ${quiz.quizName}...` : quiz.quizName}
                 </Button>
             ))}
         </div>
@@ -529,7 +538,7 @@ function FullscreenInsightsModal({
     children: React.ReactNode;
 }) {
     return (
-        <Modal open={open} onClose={onClose} panelClassName="!p-0 sm:max-w-7xl h-[92vh] max-h-[92vh]">
+        <Modal open={open} onClose={onClose} panelClassName="!p-0 h-[94vh] max-h-[94vh] sm:max-w-[94vw] xl:max-w-[90vw]">
             <div className="flex h-full flex-col">
                 <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
                     <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
@@ -548,10 +557,14 @@ function FullscreenInsightsModal({
 export default function InsightsStats() {
     const [selectedQuizSlug, setSelectedQuizSlug] = useState("");
     const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null);
+    const [pendingQuestionId, setPendingQuestionId] = useState<number | null>(null);
+    const [pendingQuizSlug, setPendingQuizSlug] = useState<string | null>(null);
     const [activeModal, setActiveModal] = useState<ModalSection | null>(null);
     const [modalPage, setModalPage] = useState(1);
     const [modalSelectedQuizSlug, setModalSelectedQuizSlug] = useState("");
     const [modalSelectedQuestionId, setModalSelectedQuestionId] = useState<number | null>(null);
+    const [modalPendingQuestionId, setModalPendingQuestionId] = useState<number | null>(null);
+    const [modalPendingQuizSlug, setModalPendingQuizSlug] = useState<string | null>(null);
 
     const previewRequest = useMemo(() => getPageRequest(), []);
 
@@ -563,7 +576,7 @@ export default function InsightsStats() {
     const { data: quizDifficulty = [], isLoading: isQuizDifficultyLoading, error: quizDifficultyError } = useGetQuizDifficultyQuery();
     const { data: hardestQuestionsPage, isLoading: isHardestQuestionsLoading, error: hardestQuestionsError } = useGetHardestQuestionsQuery(previewRequest);
     const selectedQuestion = hardestQuestionsPage?.data.find((question) => question.questionId === selectedQuestionId) ?? null;
-    const { data: distribution, isLoading: isDistributionLoading, error: distributionError } = useGetQuestionDistributionQuery(selectedQuestionId ?? 0, {
+    const { data: distribution, isLoading: isDistributionLoading, isFetching: isDistributionFetching, error: distributionError } = useGetQuestionDistributionQuery(selectedQuestionId ?? 0, {
         skip: selectedQuestionId === null || !supportsDistribution(selectedQuestion?.questionType),
     });
     const { data: bestSellerPage, isLoading: isBestSellerLoading, error: bestSellerError } = useGetBestSellerPlayersQuery(previewRequest);
@@ -571,6 +584,7 @@ export default function InsightsStats() {
     const {
         data: hardestQuestionsByQuizPage,
         isLoading: isHardestQuestionsByQuizLoading,
+        isFetching: isHardestQuestionsByQuizFetching,
         error: hardestQuestionsByQuizError,
     } = useGetHardestQuestionsForQuizQuery(
         { slug: selectedQuizSlug, ...previewRequest },
@@ -592,6 +606,7 @@ export default function InsightsStats() {
     const {
         data: modalDistribution,
         isLoading: isModalDistributionLoading,
+        isFetching: isModalDistributionFetching,
         error: modalDistributionError,
     } = useGetQuestionDistributionQuery(modalSelectedQuestionId ?? 0, {
         skip: activeModal !== "hardestQuestions"
@@ -606,6 +621,18 @@ export default function InsightsStats() {
             setSelectedQuizSlug(quizDifficulty[0].quizSlug);
         }
     }, [quizDifficulty, selectedQuizSlug]);
+
+    useEffect(() => {
+        if (!isHardestQuestionsByQuizFetching) {
+            setPendingQuizSlug(null);
+        }
+    }, [isHardestQuestionsByQuizFetching, hardestQuestionsByQuizPage]);
+
+    useEffect(() => {
+        if (!isDistributionFetching) {
+            setPendingQuestionId(null);
+        }
+    }, [isDistributionFetching, distribution]);
 
     useEffect(() => {
         const firstQuestionId = hardestQuestionsPage?.data[0]?.questionId;
@@ -638,6 +665,24 @@ export default function InsightsStats() {
             setModalSelectedQuestionId(null);
         }
     }, [modalPage]);
+
+    useEffect(() => {
+        if (!hardestQuestionsModalPage.isFetching) {
+            setModalPendingQuestionId(null);
+        }
+    }, [hardestQuestionsModalPage.isFetching, hardestQuestionsModalPage.data]);
+
+    useEffect(() => {
+        if (!hardestQuestionsByQuizModalPage.isFetching) {
+            setModalPendingQuizSlug(null);
+        }
+    }, [hardestQuestionsByQuizModalPage.isFetching, hardestQuestionsByQuizModalPage.data]);
+
+    useEffect(() => {
+        if (!isModalDistributionFetching) {
+            setModalPendingQuestionId(null);
+        }
+    }, [isModalDistributionFetching, modalDistribution]);
 
     const summaryCards = useMemo(() => {
         if (!summary) {
@@ -717,9 +762,11 @@ export default function InsightsStats() {
         }
     }
 
-    function closeModal() {
-        setActiveModal(null);
-    }
+function closeModal() {
+    setActiveModal(null);
+    setModalPendingQuestionId(null);
+    setModalPendingQuizSlug(null);
+}
 
     function renderModalBody() {
         if (!activeModal) {
@@ -896,14 +943,26 @@ export default function InsightsStats() {
                             hasError={!!hardestQuestionsModalPage.error}
                             onPageChange={setModalPage}
                             selectedQuestionId={modalSelectedQuestionId}
-                            onSelectQuestion={setModalSelectedQuestionId}
+                            pendingQuestionId={modalPendingQuestionId}
+                            onSelectQuestion={(questionId) => {
+                                if (questionId === modalSelectedQuestionId) {
+                                    return;
+                                }
+
+                                setModalPendingQuestionId(questionId);
+                                setModalSelectedQuestionId(questionId);
+                            }}
                         />
                     </div>
                     <div className="rounded-2xl border border-amber-100 bg-amber-50/30 p-4">
                         <div className="mb-4 text-sm font-semibold text-amber-700">MCQ Answer Distribution</div>
                         <DistributionPanel
-                            distribution={modalDistribution}
-                            isLoading={isModalDistributionLoading}
+                            distribution={modalPendingQuestionId ? null : modalDistribution}
+                            isLoading={shouldShowLoadingPlaceholder(
+                                isModalDistributionLoading,
+                                isModalDistributionFetching,
+                                !!modalPendingQuestionId,
+                            )}
                             hasError={!!modalDistributionError}
                             emptyMessage={
                                 (() => {
@@ -930,14 +989,24 @@ export default function InsightsStats() {
                     <QuizSelector
                         quizzes={quizDifficulty}
                         selectedQuizSlug={modalSelectedQuizSlug}
+                        pendingQuizSlug={modalPendingQuizSlug}
                         onSelect={(slug) => {
+                            if (slug === modalSelectedQuizSlug) {
+                                return;
+                            }
+
+                            setModalPendingQuizSlug(slug);
                             setModalSelectedQuizSlug(slug);
                             setModalPage(1);
                         }}
                     />
                     <QuizQuestionsTable
-                        pagination={hardestQuestionsByQuizModalPage.data}
-                        isLoading={isHardestQuestionsByQuizLoading || hardestQuestionsByQuizModalPage.isLoading}
+                        pagination={modalPendingQuizSlug ? undefined : hardestQuestionsByQuizModalPage.data}
+                        isLoading={shouldShowLoadingPlaceholder(
+                            isHardestQuestionsByQuizLoading || hardestQuestionsByQuizModalPage.isLoading,
+                            hardestQuestionsByQuizModalPage.isFetching,
+                            !!modalPendingQuizSlug,
+                        )}
                         hasError={!!hardestQuestionsByQuizError || !!hardestQuestionsByQuizModalPage.error}
                         onPageChange={setModalPage}
                     />
@@ -1103,13 +1172,25 @@ export default function InsightsStats() {
                             hasError={!!hardestQuestionsError}
                             hidePagination
                             selectedQuestionId={selectedQuestionId}
-                            onSelectQuestion={setSelectedQuestionId}
+                            pendingQuestionId={pendingQuestionId}
+                            onSelectQuestion={(questionId) => {
+                                if (questionId === selectedQuestionId) {
+                                    return;
+                                }
+
+                                setPendingQuestionId(questionId);
+                                setSelectedQuestionId(questionId);
+                            }}
                         />
                         <div className="rounded-2xl border border-amber-100 bg-amber-50/30 p-4">
                             <div className="mb-4 text-sm font-semibold text-amber-700">MCQ Answer Distribution</div>
                             <DistributionPanel
-                                distribution={distribution}
-                                isLoading={isDistributionLoading}
+                                distribution={pendingQuestionId ? null : distribution}
+                                isLoading={shouldShowLoadingPlaceholder(
+                                    isDistributionLoading,
+                                    isDistributionFetching,
+                                    !!pendingQuestionId,
+                                )}
                                 hasError={!!distributionError}
                                 emptyMessage={selectedQuestion && !supportsDistribution(selectedQuestion.questionType)
                                     ? "This question is not multiple-choice, so answer distribution is not available."
@@ -1124,11 +1205,23 @@ export default function InsightsStats() {
                         <QuizSelector
                             quizzes={quizDifficulty}
                             selectedQuizSlug={selectedQuizSlug}
-                            onSelect={setSelectedQuizSlug}
+                            pendingQuizSlug={pendingQuizSlug}
+                            onSelect={(slug) => {
+                                if (slug === selectedQuizSlug) {
+                                    return;
+                                }
+
+                                setPendingQuizSlug(slug);
+                                setSelectedQuizSlug(slug);
+                            }}
                         />
                         <QuizQuestionsTable
-                            pagination={hardestQuestionsByQuizPage}
-                            isLoading={isQuizDifficultyLoading || isHardestQuestionsByQuizLoading}
+                            pagination={pendingQuizSlug ? undefined : hardestQuestionsByQuizPage}
+                            isLoading={shouldShowLoadingPlaceholder(
+                                isQuizDifficultyLoading || isHardestQuestionsByQuizLoading,
+                                isHardestQuestionsByQuizFetching,
+                                !!pendingQuizSlug,
+                            )}
                             hasError={!!quizDifficultyError || !!hardestQuestionsByQuizError}
                             hidePagination
                         />

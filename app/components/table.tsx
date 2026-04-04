@@ -61,11 +61,13 @@ interface TdProps {
     children?: React.ReactNode;
     first?: boolean;
     last?: boolean;
+    title?: string;
 }
 
-function Td({ className, children, first, last }: TdProps) {
+function Td({ className, children, first, last, title }: TdProps) {
     return (
         <td
+            title={title}
             className={
                 "px-3 py-5 text-center items-center text-sm whitespace-nowrap text-gray-500 " +
                 (first ? "pl-4 sm:pl-0 " : "") +

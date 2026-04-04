@@ -20,13 +20,13 @@ export default function Modal({open, onClose, footer, title, children, panelClas
             />
 
             <div className="fixed inset-0 z-30 w-screen overflow-y-auto">
-                <div className="flex min-h-full justify-center text-center items-center px-4">
+                <div className="flex min-h-full items-start justify-center px-3 py-3 text-center sm:px-6 sm:py-6">
                     <DialogPanel
                         transition
-                        className={`relative transform overflow-hidden rounded-lg w-full
+                        className={`relative transform overflow-hidden rounded-lg w-full max-h-[calc(100vh-1.5rem)]
                         bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4
                         data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200
-                         data-leave:ease-in sm:my-8 sm:w-full sm:max-w-lg sm:p-6
+                         data-leave:ease-in sm:w-full sm:max-w-lg sm:p-6 sm:max-h-[calc(100vh-3rem)]
                           data-closed:sm:translate-y-0 data-closed:sm:scale-95 ${panelClassName ?? ""}`}
                     >
                         <div>
