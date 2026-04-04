@@ -132,6 +132,11 @@ export const insightsApiSlice = createApi({
             providesTags: ["Insights"],
         }),
 
+        getStatsSummary: build.query<StatsSummary, void>({
+            query: () => "ostaz/insights/stats/summary",
+            providesTags: ["Insights"],
+        }),
+
         getTopOverallUsers: build.query<UserMetricRow[], number | void>({
             query: (limit) => `ostaz/insights/stats/users/overall?limit=${withLimit(limit ?? 10)}`,
         }),
@@ -148,8 +153,16 @@ export const insightsApiSlice = createApi({
             query: (limit) => `ostaz/insights/stats/attendance?limit=${withLimit(limit ?? 10)}`,
         }),
 
+        getQuizDifficulty: build.query<QuizDifficulty[], void>({
+            query: () => "ostaz/insights/stats/quizzes/difficulty",
+        }),
+
         getHardestQuestions: build.query<HardestQuestion[], number | void>({
             query: (limit) => `ostaz/insights/stats/questions/hardest?limit=${withLimit(limit ?? 10)}`,
+        }),
+
+        getHardestQuestionsByQuiz: build.query<HardestQuestionsByQuiz[], number | void>({
+            query: (limit) => `ostaz/insights/stats/questions/by-quiz?limit=${Math.min(limit ?? 3, 10)}`,
         }),
 
         getHardestQuestionsForQuiz: build.query<HardestQuestion[], { slug: string, limit?: number }>({
@@ -160,6 +173,15 @@ export const insightsApiSlice = createApi({
             query: (questionId) => `ostaz/insights/stats/questions/${questionId}/distribution`,
         }),
 
+        getBestSellerPlayers: build.query<BestSeller[], { levelId?: number } | void>({
+            query: (args) => {
+                const levelId = args && "levelId" in args ? args.levelId : undefined;
+                return levelId
+                    ? `ostaz/insights/stats/players/best-sellers?levelId=${levelId}`
+                    : "ostaz/insights/stats/players/best-sellers";
+            },
+        }),
+
         getUsersAttemptedAllQuizzes: build.query<Pagination<AttemptedAllQuizUser>, PageRequest>({
             query: (req) => `ostaz/insights/stats/users/attempted-all${queryParamsFromRequest(req)}`,
         }),
@@ -168,13 +190,17 @@ export const insightsApiSlice = createApi({
 
 export const {
     useGetAdminStatsPageQuery,
+    useGetStatsSummaryQuery,
     useGetTopOverallUsersQuery,
     useGetTopEarnedCoinsUsersQuery,
     useGetTopValueUsersQuery,
     useGetTopAttendanceUsersQuery,
+    useGetQuizDifficultyQuery,
     useGetHardestQuestionsQuery,
+    useGetHardestQuestionsByQuizQuery,
     useGetHardestQuestionsForQuizQuery,
     useGetQuestionDistributionQuery,
+    useGetBestSellerPlayersQuery,
     useGetUsersAttemptedAllQuizzesQuery,
 } = insightsApiSlice;
 
