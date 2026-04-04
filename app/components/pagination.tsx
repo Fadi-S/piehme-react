@@ -8,6 +8,7 @@ interface PaginationProps {
     totalElements: number;
     totalPages: number;
     queryParam?: string;
+    onPageChange?: (page: number) => void;
 }
 
 export type { PaginationProps };
@@ -18,6 +19,7 @@ export default function Pagination({
     totalElements,
     totalPages,
     queryParam = "page",
+    onPageChange,
 }: PaginationProps) {
     const url = window.location.pathname;
 
@@ -74,29 +76,66 @@ export default function Pagination({
 
     if (totalPages <= 1) return null;
 
+    function goToPage(nextPage: number) {
+        if (nextPage < 1 || nextPage > totalPages || nextPage === page || !onPageChange) {
+            return;
+        }
+
+        onPageChange(nextPage);
+    }
+
     return (
         <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
             <div className="flex flex-1 justify-between sm:hidden">
-                <Link
-                    onClick={page <= 1 ? (e) => e.preventDefault() : undefined}
-                    to={prevPageUrl}
-                    className={
-                        "relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50" +
-                        (page <= 1 ? " cursor-default" : "")
-                    }
-                >
-                    Previous
-                </Link>
-                <Link
-                    onClick={page === totalPages ? (e) => e.preventDefault() : undefined}
-                    to={nextPageUrl}
-                    className={
-                        "relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50" +
-                        (page === totalPages ? " cursor-default" : "")
-                    }
-                >
-                    Next
-                </Link>
+                {onPageChange ? (
+                    <>
+                        <button
+                            type="button"
+                            onClick={() => goToPage(page - 1)}
+                            disabled={page <= 1}
+                            className={
+                                "relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50" +
+                                (page <= 1 ? " cursor-default" : "")
+                            }
+                        >
+                            Previous
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => goToPage(page + 1)}
+                            disabled={page === totalPages}
+                            className={
+                                "relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50" +
+                                (page === totalPages ? " cursor-default" : "")
+                            }
+                        >
+                            Next
+                        </button>
+                    </>
+                ) : (
+                    <>
+                        <Link
+                            onClick={page <= 1 ? (e) => e.preventDefault() : undefined}
+                            to={prevPageUrl}
+                            className={
+                                "relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50" +
+                                (page <= 1 ? " cursor-default" : "")
+                            }
+                        >
+                            Previous
+                        </Link>
+                        <Link
+                            onClick={page === totalPages ? (e) => e.preventDefault() : undefined}
+                            to={nextPageUrl}
+                            className={
+                                "relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50" +
+                                (page === totalPages ? " cursor-default" : "")
+                            }
+                        >
+                            Next
+                        </Link>
+                    </>
+                )}
             </div>
             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                 <div>
@@ -108,14 +147,27 @@ export default function Pagination({
                 </div>
                 <div>
                     <nav aria-label="Pagination" className="isolate inline-flex -space-x-px rounded-md shadow-sm">
-                        <Link
-                            to={prevPageUrl}
-                            className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${page === 1 ? "cursor-default" : ""
-                                }`}
-                        >
-                            <span className="sr-only">Previous</span>
-                            <ChevronLeftIcon aria-hidden="true" className="h-5 w-5" />
-                        </Link>
+                        {onPageChange ? (
+                            <button
+                                type="button"
+                                onClick={() => goToPage(page - 1)}
+                                disabled={page === 1}
+                                className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${page === 1 ? "cursor-default" : ""
+                                    }`}
+                            >
+                                <span className="sr-only">Previous</span>
+                                <ChevronLeftIcon aria-hidden="true" className="h-5 w-5" />
+                            </button>
+                        ) : (
+                            <Link
+                                to={prevPageUrl}
+                                className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${page === 1 ? "cursor-default" : ""
+                                    }`}
+                            >
+                                <span className="sr-only">Previous</span>
+                                <ChevronLeftIcon aria-hidden="true" className="h-5 w-5" />
+                            </Link>
+                        )}
 
                         {pages.map((pg, idx) => {
                             if (pg === "...") {
@@ -129,7 +181,19 @@ export default function Pagination({
                                 );
                             }
 
-                            return (
+                            return onPageChange ? (
+                                <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => goToPage(pg as number)}
+                                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${page === pg
+                                            ? "z-10 bg-blue-600 text-white cursor-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                                            : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                                        }`}
+                                >
+                                    {pg}
+                                </button>
+                            ) : (
                                 <Link
                                     key={idx}
                                     to={buildPageUrl(pg as number)}
@@ -143,14 +207,27 @@ export default function Pagination({
                             );
                         })}
 
-                        <Link
-                            to={nextPageUrl}
-                            className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${page === totalPages ? "cursor-default" : ""
-                                }`}
-                        >
-                            <span className="sr-only">Next</span>
-                            <ChevronRightIcon aria-hidden="true" className="h-5 w-5" />
-                        </Link>
+                        {onPageChange ? (
+                            <button
+                                type="button"
+                                onClick={() => goToPage(page + 1)}
+                                disabled={page === totalPages}
+                                className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${page === totalPages ? "cursor-default" : ""
+                                    }`}
+                            >
+                                <span className="sr-only">Next</span>
+                                <ChevronRightIcon aria-hidden="true" className="h-5 w-5" />
+                            </button>
+                        ) : (
+                            <Link
+                                to={nextPageUrl}
+                                className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${page === totalPages ? "cursor-default" : ""
+                                    }`}
+                            >
+                                <span className="sr-only">Next</span>
+                                <ChevronRightIcon aria-hidden="true" className="h-5 w-5" />
+                            </Link>
+                        )}
                     </nav>
                 </div>
             </div>

@@ -8,9 +8,12 @@ interface TableProps {
     header?: React.ReactNode;
     body: (item: any) => React.ReactNode;
     pagination: PaginationType<any>;
+    queryParam?: string;
+    hidePagination?: boolean;
+    onPageChange?: (page: number) => void;
 }
 
-function Table({ pagination, header, body }: TableProps) {
+function Table({ pagination, header, body, queryParam, hidePagination, onPageChange }: TableProps) {
     return (
         <div className="mt-8 flow-root max-w-full px-2 sm:px-4">
             <If
@@ -37,12 +40,16 @@ function Table({ pagination, header, body }: TableProps) {
                             </div>
                         </div>
                     </div>
-                    <Pagination
-                        size={pagination.size}
-                        page={pagination.page + 1}
-                        totalPages={pagination.totalPages}
-                        totalElements={pagination.totalElements}
-                    />
+                    {!hidePagination && (
+                        <Pagination
+                            size={pagination.size}
+                            page={pagination.page + 1}
+                            totalPages={pagination.totalPages}
+                            totalElements={pagination.totalElements}
+                            queryParam={queryParam}
+                            onPageChange={onPageChange}
+                        />
+                    )}
                 </>
             </If>
         </div>

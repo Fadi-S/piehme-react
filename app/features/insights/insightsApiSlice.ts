@@ -112,10 +112,6 @@ interface AttemptedAllQuizUser {
     publishedQuizzesCount: number;
 }
 
-function withLimit(limit: number) {
-    return limit > 10 ? 20 : 10;
-}
-
 export const insightsApiSlice = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: ROOT_URL,
@@ -137,48 +133,55 @@ export const insightsApiSlice = createApi({
             providesTags: ["Insights"],
         }),
 
-        getTopOverallUsers: build.query<UserMetricRow[], number | void>({
-            query: (limit) => `ostaz/insights/stats/users/overall?limit=${withLimit(limit ?? 10)}`,
+        getTopOverallUsers: build.query<Pagination<UserMetricRow>, PageRequest | void>({
+            query: (req) => `ostaz/insights/stats/users/overall${queryParamsFromRequest(req ?? { page: 1, size: 10 })}`,
         }),
 
-        getTopEarnedCoinsUsers: build.query<UserMetricRow[], number | void>({
-            query: (limit) => `ostaz/insights/stats/users/coins?limit=${withLimit(limit ?? 10)}`,
+        getTopEarnedCoinsUsers: build.query<Pagination<UserMetricRow>, PageRequest | void>({
+            query: (req) => `ostaz/insights/stats/users/coins${queryParamsFromRequest(req ?? { page: 1, size: 10 })}`,
         }),
 
-        getTopValueUsers: build.query<UserMetricRow[], number | void>({
-            query: (limit) => `ostaz/insights/stats/users/value?limit=${withLimit(limit ?? 10)}`,
+        getTopValueUsers: build.query<Pagination<UserMetricRow>, PageRequest | void>({
+            query: (req) => `ostaz/insights/stats/users/value${queryParamsFromRequest(req ?? { page: 1, size: 10 })}`,
         }),
 
-        getTopAttendanceUsers: build.query<UserMetricRow[], number | void>({
-            query: (limit) => `ostaz/insights/stats/attendance?limit=${withLimit(limit ?? 10)}`,
+        getTopAttendanceUsers: build.query<Pagination<UserMetricRow>, PageRequest | void>({
+            query: (req) => `ostaz/insights/stats/attendance${queryParamsFromRequest(req ?? { page: 1, size: 10 })}`,
         }),
 
         getQuizDifficulty: build.query<QuizDifficulty[], void>({
             query: () => "ostaz/insights/stats/quizzes/difficulty",
         }),
 
-        getHardestQuestions: build.query<HardestQuestion[], number | void>({
-            query: (limit) => `ostaz/insights/stats/questions/hardest?limit=${withLimit(limit ?? 10)}`,
+        getHardestQuestions: build.query<Pagination<HardestQuestion>, PageRequest | void>({
+            query: (req) => `ostaz/insights/stats/questions/hardest${queryParamsFromRequest(req ?? { page: 1, size: 10 })}`,
         }),
 
         getHardestQuestionsByQuiz: build.query<HardestQuestionsByQuiz[], number | void>({
             query: (limit) => `ostaz/insights/stats/questions/by-quiz?limit=${Math.min(limit ?? 3, 10)}`,
         }),
 
-        getHardestQuestionsForQuiz: build.query<HardestQuestion[], { slug: string, limit?: number }>({
-            query: ({ slug, limit }) => `ostaz/insights/stats/quizzes/${slug}/questions/hardest?limit=${withLimit(limit ?? 10)}`,
+        getHardestQuestionsForQuiz: build.query<Pagination<HardestQuestion>, { slug: string } & PageRequest>({
+            query: ({ slug, ...req }) => `ostaz/insights/stats/quizzes/${slug}/questions/hardest${queryParamsFromRequest(req)}`,
         }),
 
         getQuestionDistribution: build.query<ChoiceDistribution | null, number>({
             query: (questionId) => `ostaz/insights/stats/questions/${questionId}/distribution`,
         }),
 
-        getBestSellerPlayers: build.query<BestSeller[], { levelId?: number } | void>({
+        getBestSellerPlayers: build.query<Pagination<BestSeller>, ({ levelId?: number } & PageRequest) | void>({
             query: (args) => {
                 const levelId = args && "levelId" in args ? args.levelId : undefined;
-                return levelId
-                    ? `ostaz/insights/stats/players/best-sellers?levelId=${levelId}`
-                    : "ostaz/insights/stats/players/best-sellers";
+                const params = queryParamsFromRequest({
+                    page: args && "page" in args ? args.page : 1,
+                    size: args && "size" in args ? args.size : 10,
+                });
+
+                if (levelId) {
+                    return `ostaz/insights/stats/players/best-sellers${params}${params ? "&" : "?"}levelId=${levelId}`;
+                }
+
+                return `ostaz/insights/stats/players/best-sellers${params}`;
             },
         }),
 
