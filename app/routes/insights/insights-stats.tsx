@@ -20,11 +20,13 @@ import {
     type AttemptedAllQuizUser,
     type BestSeller,
     type ChartPoint,
-    type ChoiceDistribution,
     type ChoiceDistributionOption,
     type HardestQuestion,
+    type QuestionDistribution,
     type QuizDifficulty,
+    type ReorderPermutation,
     type UserMetricRow,
+    type WrittenAnswerGroup,
 } from "~/features/insights/insightsApiSlice";
 import type { Pagination as PaginationType, PageRequest } from "~/types/pagination";
 
@@ -98,8 +100,14 @@ function shouldShowLoadingPlaceholder(isLoading: boolean, isFetching?: boolean, 
 }
 
 function supportsDistribution(questionType?: string | null) {
-    return questionType === "Choice" || questionType === "MultipleCorrectChoices";
+    return questionType === "Choice"
+        || questionType === "MultipleCorrectChoices"
+        || questionType === "Written"
+        || questionType === "Reorder";
 }
+
+const MAX_WRITTEN_BARS = 6;
+const MAX_REORDER_ROWS = 6;
 
 function buildLeaderboardComparisonChart(
     topOverallUsers: UserMetricRow[],
@@ -338,12 +346,18 @@ function QuizQuestionsTable({
     hasError,
     hidePagination = false,
     onPageChange,
+    selectedQuestionId,
+    pendingQuestionId,
+    onSelectQuestion,
 }: {
     pagination?: PaginationType<HardestQuestion>;
     isLoading: boolean;
     hasError: boolean;
     hidePagination?: boolean;
     onPageChange?: (page: number) => void;
+    selectedQuestionId?: number | null;
+    pendingQuestionId?: number | null;
+    onSelectQuestion?: (questionId: number) => void;
 }) {
     const questions = pagination?.data ?? [];
 
@@ -368,13 +382,70 @@ function QuizQuestionsTable({
                 </tr>
             )}
             body={(question: HardestQuestion) => (
-                <tr key={`quiz-question-${question.questionId}`}>
+                <tr
+                    key={`quiz-question-${question.questionId}`}
+                    className={`${onSelectQuestion ? "cursor-pointer" : ""} ${selectedQuestionId === question.questionId ? "bg-amber-50" : ""} ${pendingQuestionId === question.questionId ? "opacity-60" : ""}`}
+                    onClick={() => onSelectQuestion?.(question.questionId)}
+                >
                     <Td className="max-w-xs truncate text-left text-gray-700" title={question.questionTitle}>{question.questionTitle}</Td>
                     <Td>{percentage(question.accuracy)}</Td>
                     <Td>{question.attempts}</Td>
                 </tr>
             )}
         />
+    );
+}
+
+function aggregateWrittenAnswers(answers: WrittenAnswerGroup[]) {
+    if (answers.length <= MAX_WRITTEN_BARS) {
+        return {
+            visibleAnswers: answers,
+            otherCount: 0,
+            otherPercentage: 0,
+            hiddenGroupsCount: 0,
+        };
+    }
+
+    const visibleAnswers = answers.slice(0, MAX_WRITTEN_BARS - 1);
+    const hiddenAnswers = answers.slice(MAX_WRITTEN_BARS - 1);
+
+    return {
+        visibleAnswers,
+        otherCount: hiddenAnswers.reduce((sum, answer) => sum + answer.count, 0),
+        otherPercentage: hiddenAnswers.reduce((sum, answer) => sum + answer.percentage, 0),
+        hiddenGroupsCount: hiddenAnswers.length,
+    };
+}
+
+function DistributionBar({
+    label,
+    count,
+    percentageValue,
+    tone = "amber",
+}: {
+    label: string;
+    count: number;
+    percentageValue: number;
+    tone?: "amber" | "blue" | "green";
+}) {
+    const trackClass = tone === "blue" ? "bg-blue-100" : tone === "green" ? "bg-green-100" : "bg-amber-100";
+    const fillClass = tone === "blue" ? "bg-blue-600" : tone === "green" ? "bg-green-600" : "bg-amber-700";
+
+    return (
+        <div className="rounded-lg border border-gray-200 p-3">
+            <div className="mb-2 flex items-start justify-between gap-3 text-sm">
+                <span className="font-medium text-gray-900">{label}</span>
+                <span className="shrink-0 text-xs font-semibold text-gray-500">
+                    {count} responses • {percentage(percentageValue)}
+                </span>
+            </div>
+            <div className={`h-2 overflow-hidden rounded-full ${trackClass}`}>
+                <div
+                    className={`h-full rounded-full transition-all ${fillClass}`}
+                    style={{ width: `${Math.max(0, Math.min(percentageValue * 100, 100))}%` }}
+                />
+            </div>
+        </div>
     );
 }
 
@@ -424,7 +495,7 @@ function DistributionPanel({
     hasError,
     emptyMessage = "Select a question to inspect its answer distribution.",
 }: {
-    distribution?: ChoiceDistribution | null;
+    distribution?: QuestionDistribution | null;
     isLoading: boolean;
     hasError: boolean;
     emptyMessage?: string;
@@ -441,33 +512,107 @@ function DistributionPanel({
         return <div className="py-6 text-sm text-gray-500">{emptyMessage}</div>;
     }
 
+    const header = (
+        <div>
+            <div className="text-sm font-semibold text-amber-700">{distribution.quizName}</div>
+            <div className="mt-1 text-lg font-semibold text-gray-900">{distribution.questionTitle}</div>
+            <div className="mt-1 text-sm text-gray-500">
+                Responses: {distribution.totalResponses}
+                {distribution.distributionType !== "choice"
+                    ? ` • Distinct patterns: ${distribution.distinctAnswers}`
+                    : ""}
+            </div>
+        </div>
+    );
+
+    if (distribution.distributionType === "choice") {
+        return (
+            <div className="space-y-4">
+                {header}
+                <div className="space-y-3">
+                    {distribution.options.map((option: ChoiceDistributionOption) => (
+                        <div key={option.optionId} className="rounded-lg border border-gray-200 p-3">
+                            <div className="flex items-center justify-between gap-3 text-sm">
+                                <span className="font-medium text-gray-900">
+                                    {option.optionOrder}. {option.optionName}
+                                </span>
+                                <span className={option.correct ? "font-semibold text-green-700" : "text-gray-500"}>
+                                    {option.picksCount} picks • {percentage(option.picksPercentage)}
+                                </span>
+                            </div>
+                            <div className="mt-2 h-3 overflow-hidden rounded-full bg-gray-100">
+                                <div
+                                    className={`h-full rounded-full ${option.correct ? "bg-green-500" : "bg-blue-500"}`}
+                                    style={{ width: `${Math.max(0, Math.min(option.picksPercentage * 100, 100))}%` }}
+                                />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    if (distribution.distributionType === "written") {
+        const { visibleAnswers, otherCount, otherPercentage, hiddenGroupsCount } = aggregateWrittenAnswers(distribution.answers);
+
+        return (
+            <div className="space-y-4">
+                {header}
+                <div className="space-y-3">
+                    {visibleAnswers.map((answer) => (
+                        <DistributionBar
+                            key={answer.normalizedAnswer}
+                            label={answer.displayAnswer}
+                            count={answer.count}
+                            percentageValue={answer.percentage}
+                            tone="blue"
+                        />
+                    ))}
+                    {otherCount > 0 && (
+                        <DistributionBar
+                            label={`Other answers (${hiddenGroupsCount} groups)`}
+                            count={otherCount}
+                            percentageValue={otherPercentage}
+                            tone="amber"
+                        />
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    const visiblePermutations = distribution.permutations.slice(0, MAX_REORDER_ROWS);
+    const hiddenPermutationsCount = Math.max(distribution.permutations.length - visiblePermutations.length, 0);
+
     return (
         <div className="space-y-4">
-            <div>
-                <div className="text-sm font-semibold text-amber-700">{distribution.quizName}</div>
-                <div className="mt-1 text-lg font-semibold text-gray-900">{distribution.questionTitle}</div>
-                <div className="mt-1 text-sm text-gray-500">Responses: {distribution.totalResponses}</div>
-            </div>
-
+            {header}
             <div className="space-y-3">
-                {distribution.options.map((option: ChoiceDistributionOption) => (
-                    <div key={option.optionId} className="rounded-lg border border-gray-200 p-3">
-                        <div className="flex items-center justify-between gap-3 text-sm">
-                            <span className="font-medium text-gray-900">
-                                {option.optionOrder}. {option.optionName}
-                            </span>
-                            <span className={option.correct ? "font-semibold text-green-700" : "text-gray-500"}>
-                                {option.picksCount} picks • {percentage(option.picksPercentage)}
+                {visiblePermutations.map((permutation: ReorderPermutation) => (
+                    <div key={permutation.optionOrders.join("-")} className="rounded-lg border border-gray-200 p-3">
+                        <div className="mb-2 flex items-start justify-between gap-3 text-sm">
+                            <span className="font-medium text-gray-900">{permutation.sequenceLabel}</span>
+                            <span className={permutation.correct ? "font-semibold text-green-700" : "text-gray-500"}>
+                                {permutation.count} responses • {percentage(permutation.percentage)}
                             </span>
                         </div>
-                        <div className="mt-2 h-3 overflow-hidden rounded-full bg-gray-100">
+                        <div className="h-2 overflow-hidden rounded-full bg-gray-100">
                             <div
-                                className={`h-full rounded-full ${option.correct ? "bg-green-500" : "bg-blue-500"}`}
-                                style={{ width: `${option.picksPercentage * 100}%` }}
+                                className={`h-full rounded-full ${permutation.correct ? "bg-green-500" : "bg-blue-500"}`}
+                                style={{ width: `${Math.max(0, Math.min(permutation.percentage * 100, 100))}%` }}
                             />
+                        </div>
+                        <div className="mt-2 text-xs text-gray-500">
+                            {permutation.correct ? "Correct order" : "Common submitted order"}
                         </div>
                     </div>
                 ))}
+                {hiddenPermutationsCount > 0 && (
+                    <div className="text-xs text-gray-500">
+                        {hiddenPermutationsCount} additional low-frequency permutations are hidden.
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -517,7 +662,7 @@ function ViewAllCard({
     return (
         <Card title={title} className="h-full">
             <div className="flex justify-end">
-                <Button color="gray" width="w-auto" onClick={onViewAll}>
+                <Button color="gray" width="w-auto mb-6" onClick={onViewAll}>
                     View all
                 </Button>
             </div>
@@ -538,7 +683,7 @@ function FullscreenInsightsModal({
     children: React.ReactNode;
 }) {
     return (
-        <Modal open={open} onClose={onClose} panelClassName="!p-0 h-[94vh] max-h-[94vh] sm:max-w-[94vw] xl:max-w-[90vw]">
+        <Modal open={open} onClose={onClose} panelClassName="!p-0 h-[94vh] max-h-[94vh] sm:max-w-[94vw] xl:max-w-[90vw] overflow-y-auto">
             <div className="flex h-full flex-col">
                 <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
                     <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
@@ -559,12 +704,16 @@ export default function InsightsStats() {
     const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null);
     const [pendingQuestionId, setPendingQuestionId] = useState<number | null>(null);
     const [pendingQuizSlug, setPendingQuizSlug] = useState<string | null>(null);
+    const [selectedQuizQuestionId, setSelectedQuizQuestionId] = useState<number | null>(null);
+    const [pendingQuizQuestionId, setPendingQuizQuestionId] = useState<number | null>(null);
     const [activeModal, setActiveModal] = useState<ModalSection | null>(null);
     const [modalPage, setModalPage] = useState(1);
     const [modalSelectedQuizSlug, setModalSelectedQuizSlug] = useState("");
     const [modalSelectedQuestionId, setModalSelectedQuestionId] = useState<number | null>(null);
     const [modalPendingQuestionId, setModalPendingQuestionId] = useState<number | null>(null);
     const [modalPendingQuizSlug, setModalPendingQuizSlug] = useState<string | null>(null);
+    const [modalSelectedQuizQuestionId, setModalSelectedQuizQuestionId] = useState<number | null>(null);
+    const [modalPendingQuizQuestionId, setModalPendingQuizQuestionId] = useState<number | null>(null);
 
     const previewRequest = useMemo(() => getPageRequest(), []);
 
@@ -590,6 +739,15 @@ export default function InsightsStats() {
         { slug: selectedQuizSlug, ...previewRequest },
         { skip: !selectedQuizSlug },
     );
+    const selectedQuizQuestion = hardestQuestionsByQuizPage?.data.find((question) => question.questionId === selectedQuizQuestionId) ?? null;
+    const {
+        data: quizDistribution,
+        isLoading: isQuizDistributionLoading,
+        isFetching: isQuizDistributionFetching,
+        error: quizDistributionError,
+    } = useGetQuestionDistributionQuery(selectedQuizQuestionId ?? 0, {
+        skip: selectedQuizQuestionId === null || !supportsDistribution(selectedQuizQuestion?.questionType),
+    });
 
     const modalRequest = useMemo(() => getPageRequest(modalPage, PAGE_SIZE), [modalPage]);
     const overallModalPage = useGetTopOverallUsersQuery(modalRequest, { skip: activeModal !== "overall" });
@@ -603,6 +761,9 @@ export default function InsightsStats() {
         { slug: modalSelectedQuizSlug, ...modalRequest },
         { skip: activeModal !== "hardestQuestionsByQuiz" || !modalSelectedQuizSlug },
     );
+    const modalSelectedQuizQuestion = hardestQuestionsByQuizModalPage.data?.data.find(
+        (question) => question.questionId === modalSelectedQuizQuestionId,
+    ) ?? null;
     const {
         data: modalDistribution,
         isLoading: isModalDistributionLoading,
@@ -614,6 +775,16 @@ export default function InsightsStats() {
             || !supportsDistribution(
                 hardestQuestionsModalPage.data?.data.find((question) => question.questionId === modalSelectedQuestionId)?.questionType,
             ),
+    });
+    const {
+        data: modalQuizDistribution,
+        isLoading: isModalQuizDistributionLoading,
+        isFetching: isModalQuizDistributionFetching,
+        error: modalQuizDistributionError,
+    } = useGetQuestionDistributionQuery(modalSelectedQuizQuestionId ?? 0, {
+        skip: activeModal !== "hardestQuestionsByQuiz"
+            || modalSelectedQuizQuestionId === null
+            || !supportsDistribution(modalSelectedQuizQuestion?.questionType),
     });
 
     useEffect(() => {
@@ -629,10 +800,23 @@ export default function InsightsStats() {
     }, [isHardestQuestionsByQuizFetching, hardestQuestionsByQuizPage]);
 
     useEffect(() => {
+        const firstQuestionId = hardestQuestionsByQuizPage?.data[0]?.questionId ?? null;
+        if (firstQuestionId !== null && !hardestQuestionsByQuizPage?.data.some((question) => question.questionId === selectedQuizQuestionId)) {
+            setSelectedQuizQuestionId(firstQuestionId);
+        }
+    }, [hardestQuestionsByQuizPage, selectedQuizQuestionId]);
+
+    useEffect(() => {
         if (!isDistributionFetching) {
             setPendingQuestionId(null);
         }
     }, [isDistributionFetching, distribution]);
+
+    useEffect(() => {
+        if (!isQuizDistributionFetching) {
+            setPendingQuizQuestionId(null);
+        }
+    }, [isQuizDistributionFetching, quizDistribution]);
 
     useEffect(() => {
         const firstQuestionId = hardestQuestionsPage?.data[0]?.questionId;
@@ -667,6 +851,17 @@ export default function InsightsStats() {
     }, [modalPage]);
 
     useEffect(() => {
+        if (activeModal !== "hardestQuestionsByQuiz") {
+            return;
+        }
+
+        const firstQuestionId = hardestQuestionsByQuizModalPage.data?.data[0]?.questionId ?? null;
+        if (firstQuestionId !== null && !hardestQuestionsByQuizModalPage.data?.data.some((question) => question.questionId === modalSelectedQuizQuestionId)) {
+            setModalSelectedQuizQuestionId(firstQuestionId);
+        }
+    }, [activeModal, hardestQuestionsByQuizModalPage.data, modalSelectedQuizQuestionId]);
+
+    useEffect(() => {
         if (!hardestQuestionsModalPage.isFetching) {
             setModalPendingQuestionId(null);
         }
@@ -683,6 +878,12 @@ export default function InsightsStats() {
             setModalPendingQuestionId(null);
         }
     }, [isModalDistributionFetching, modalDistribution]);
+
+    useEffect(() => {
+        if (!isModalQuizDistributionFetching) {
+            setModalPendingQuizQuestionId(null);
+        }
+    }, [isModalQuizDistributionFetching, modalQuizDistribution]);
 
     const summaryCards = useMemo(() => {
         if (!summary) {
@@ -759,14 +960,16 @@ export default function InsightsStats() {
 
         if (section === "hardestQuestionsByQuiz") {
             setModalSelectedQuizSlug(selectedQuizSlug || quizDifficulty[0]?.quizSlug || "");
+            setModalSelectedQuizQuestionId(selectedQuizQuestionId);
         }
     }
 
-function closeModal() {
-    setActiveModal(null);
-    setModalPendingQuestionId(null);
-    setModalPendingQuizSlug(null);
-}
+    function closeModal() {
+        setActiveModal(null);
+        setModalPendingQuestionId(null);
+        setModalPendingQuizSlug(null);
+        setModalPendingQuizQuestionId(null);
+    }
 
     function renderModalBody() {
         if (!activeModal) {
@@ -955,7 +1158,7 @@ function closeModal() {
                         />
                     </div>
                     <div className="rounded-2xl border border-amber-100 bg-amber-50/30 p-4">
-                        <div className="mb-4 text-sm font-semibold text-amber-700">MCQ Answer Distribution</div>
+                        <div className="mb-4 text-sm font-semibold text-amber-700">Question Distribution</div>
                         <DistributionPanel
                             distribution={modalPendingQuestionId ? null : modalDistribution}
                             isLoading={shouldShowLoadingPlaceholder(
@@ -971,7 +1174,7 @@ function closeModal() {
                                     );
 
                                     if (modalSelectedQuestion && !supportsDistribution(modalSelectedQuestion.questionType)) {
-                                        return "This question is not multiple-choice, so answer distribution is not available.";
+                                        return "Distribution is not available for this question.";
                                     }
 
                                     return undefined;
@@ -985,31 +1188,59 @@ function closeModal() {
 
         if (activeModal === "hardestQuestionsByQuiz") {
             return (
-                <div className="space-y-6">
-                    <QuizSelector
-                        quizzes={quizDifficulty}
-                        selectedQuizSlug={modalSelectedQuizSlug}
-                        pendingQuizSlug={modalPendingQuizSlug}
-                        onSelect={(slug) => {
-                            if (slug === modalSelectedQuizSlug) {
-                                return;
-                            }
+                <div className="grid gap-8 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,0.9fr)]">
+                    <div className="space-y-6">
+                        <QuizSelector
+                            quizzes={quizDifficulty}
+                            selectedQuizSlug={modalSelectedQuizSlug}
+                            pendingQuizSlug={modalPendingQuizSlug}
+                            onSelect={(slug) => {
+                                if (slug === modalSelectedQuizSlug) {
+                                    return;
+                                }
 
-                            setModalPendingQuizSlug(slug);
-                            setModalSelectedQuizSlug(slug);
-                            setModalPage(1);
-                        }}
-                    />
-                    <QuizQuestionsTable
-                        pagination={modalPendingQuizSlug ? undefined : hardestQuestionsByQuizModalPage.data}
-                        isLoading={shouldShowLoadingPlaceholder(
-                            isHardestQuestionsByQuizLoading || hardestQuestionsByQuizModalPage.isLoading,
-                            hardestQuestionsByQuizModalPage.isFetching,
-                            !!modalPendingQuizSlug,
-                        )}
-                        hasError={!!hardestQuestionsByQuizError || !!hardestQuestionsByQuizModalPage.error}
-                        onPageChange={setModalPage}
-                    />
+                                setModalPendingQuizSlug(slug);
+                                setModalSelectedQuizSlug(slug);
+                                setModalSelectedQuizQuestionId(null);
+                                setModalPage(1);
+                            }}
+                        />
+                        <QuizQuestionsTable
+                            pagination={modalPendingQuizSlug ? undefined : hardestQuestionsByQuizModalPage.data}
+                            isLoading={shouldShowLoadingPlaceholder(
+                                isHardestQuestionsByQuizLoading || hardestQuestionsByQuizModalPage.isLoading,
+                                hardestQuestionsByQuizModalPage.isFetching,
+                                !!modalPendingQuizSlug,
+                            )}
+                            hasError={!!hardestQuestionsByQuizError || !!hardestQuestionsByQuizModalPage.error}
+                            onPageChange={setModalPage}
+                            selectedQuestionId={modalSelectedQuizQuestionId}
+                            pendingQuestionId={modalPendingQuizQuestionId}
+                            onSelectQuestion={(questionId) => {
+                                if (questionId === modalSelectedQuizQuestionId) {
+                                    return;
+                                }
+
+                                setModalPendingQuizQuestionId(questionId);
+                                setModalSelectedQuizQuestionId(questionId);
+                            }}
+                        />
+                    </div>
+                    <div className="rounded-2xl border border-amber-100 bg-amber-50/30 p-4">
+                        <div className="mb-4 text-sm font-semibold text-amber-700">Question Distribution</div>
+                        <DistributionPanel
+                            distribution={modalPendingQuizQuestionId ? null : modalQuizDistribution}
+                            isLoading={shouldShowLoadingPlaceholder(
+                                isModalQuizDistributionLoading,
+                                isModalQuizDistributionFetching,
+                                !!modalPendingQuizQuestionId,
+                            )}
+                            hasError={!!modalQuizDistributionError}
+                            emptyMessage={modalSelectedQuizQuestion && !supportsDistribution(modalSelectedQuizQuestion.questionType)
+                                ? "Distribution is not available for this question."
+                                : undefined}
+                        />
+                    </div>
                 </div>
             );
         }
@@ -1183,7 +1414,7 @@ function closeModal() {
                             }}
                         />
                         <div className="rounded-2xl border border-amber-100 bg-amber-50/30 p-4">
-                            <div className="mb-4 text-sm font-semibold text-amber-700">MCQ Answer Distribution</div>
+                            <div className="mb-4 text-sm font-semibold text-amber-700">Question Distribution</div>
                             <DistributionPanel
                                 distribution={pendingQuestionId ? null : distribution}
                                 isLoading={shouldShowLoadingPlaceholder(
@@ -1193,7 +1424,7 @@ function closeModal() {
                                 )}
                                 hasError={!!distributionError}
                                 emptyMessage={selectedQuestion && !supportsDistribution(selectedQuestion.questionType)
-                                    ? "This question is not multiple-choice, so answer distribution is not available."
+                                    ? "Distribution is not available for this question."
                                     : undefined}
                             />
                         </div>
@@ -1213,22 +1444,50 @@ function closeModal() {
 
                                 setPendingQuizSlug(slug);
                                 setSelectedQuizSlug(slug);
+                                setSelectedQuizQuestionId(null);
                             }}
                         />
-                        <QuizQuestionsTable
-                            pagination={pendingQuizSlug ? undefined : hardestQuestionsByQuizPage}
-                            isLoading={shouldShowLoadingPlaceholder(
-                                isQuizDifficultyLoading || isHardestQuestionsByQuizLoading,
-                                isHardestQuestionsByQuizFetching,
-                                !!pendingQuizSlug,
-                            )}
-                            hasError={!!quizDifficultyError || !!hardestQuestionsByQuizError}
-                            hidePagination
-                        />
+                        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.95fr)]">
+                            <QuizQuestionsTable
+                                pagination={pendingQuizSlug ? undefined : hardestQuestionsByQuizPage}
+                                isLoading={shouldShowLoadingPlaceholder(
+                                    isQuizDifficultyLoading || isHardestQuestionsByQuizLoading,
+                                    isHardestQuestionsByQuizFetching,
+                                    !!pendingQuizSlug,
+                                )}
+                                hasError={!!quizDifficultyError || !!hardestQuestionsByQuizError}
+                                hidePagination
+                                selectedQuestionId={selectedQuizQuestionId}
+                                pendingQuestionId={pendingQuizQuestionId}
+                                onSelectQuestion={(questionId) => {
+                                    if (questionId === selectedQuizQuestionId) {
+                                        return;
+                                    }
+
+                                    setPendingQuizQuestionId(questionId);
+                                    setSelectedQuizQuestionId(questionId);
+                                }}
+                            />
+                            <div className="rounded-2xl border border-amber-100 bg-amber-50/30 p-4">
+                                <div className="mb-4 text-sm font-semibold text-amber-700">Question Distribution</div>
+                                <DistributionPanel
+                                    distribution={pendingQuizQuestionId ? null : quizDistribution}
+                                    isLoading={shouldShowLoadingPlaceholder(
+                                        isQuizDistributionLoading,
+                                        isQuizDistributionFetching,
+                                        !!pendingQuizQuestionId,
+                                    )}
+                                    hasError={!!quizDistributionError}
+                                    emptyMessage={selectedQuizQuestion && !supportsDistribution(selectedQuizQuestion.questionType)
+                                        ? "Distribution is not available for this question."
+                                        : undefined}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </ViewAllCard>
 
-                <div className="grid gap-6 xl:grid-cols-2">
+                <div className="grid gap-6 xl:grid-cols-1">
                     <ViewAllCard title="Best Seller Players" onViewAll={() => openModal("bestSellers")}>
                         <BestSellerTable
                             pagination={bestSellerPage}
@@ -1237,33 +1496,7 @@ function closeModal() {
                             hidePagination
                         />
                     </ViewAllCard>
-
-                    <Card title="Best Seller Chart">
-                        {(isBestSellerLoading || bestSellerError) ? renderCardState(isBestSellerLoading, !!bestSellerError) : (
-                            <StatsBarChart data={bestSellerChart} />
-                        )}
-                    </Card>
                 </div>
-
-                <Card title="Attendance And Leaderboard Charts">
-                    <div className="space-y-8">
-                        <div>
-                            <div className="mb-3 text-sm font-semibold text-gray-700">Attendance</div>
-                            {(isAttendanceLoading || attendanceError) ? renderCardState(isAttendanceLoading, !!attendanceError) : (
-                                <StatsBarChart data={attendanceChart} />
-                            )}
-                        </div>
-                        <div>
-                            <div className="mb-3 text-sm font-semibold text-gray-700">Leaderboard Comparison</div>
-                            {(isOverallLoading || isCoinsLoading || isValueLoading || overallError || coinsError || valueError) ? renderCardState(
-                                isOverallLoading || isCoinsLoading || isValueLoading,
-                                !!overallError || !!coinsError || !!valueError,
-                            ) : (
-                                <StatsBarChart data={leaderboardComparisonChart} />
-                            )}
-                        </div>
-                    </div>
-                </Card>
             </div>
 
             <FullscreenInsightsModal

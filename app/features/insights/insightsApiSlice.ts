@@ -61,14 +61,66 @@ interface ChoiceDistributionOption {
 }
 
 interface ChoiceDistribution {
+    distributionType: "choice";
     quizId: number;
     quizSlug: string;
     quizName: string;
     questionId: number;
     questionTitle: string;
+    questionType: string;
     totalResponses: number;
+    distinctAnswers: number | null;
     options: ChoiceDistributionOption[];
+    answers: null;
+    permutations: null;
 }
+
+interface WrittenAnswerGroup {
+    normalizedAnswer: string;
+    displayAnswer: string;
+    count: number;
+    percentage: number;
+}
+
+interface WrittenDistribution {
+    distributionType: "written";
+    quizId: number;
+    quizSlug: string;
+    quizName: string;
+    questionId: number;
+    questionTitle: string;
+    questionType: string;
+    totalResponses: number;
+    distinctAnswers: number;
+    options: null;
+    answers: WrittenAnswerGroup[];
+    permutations: null;
+}
+
+interface ReorderPermutation {
+    optionOrders: number[];
+    sequenceLabel: string;
+    count: number;
+    percentage: number;
+    correct: boolean;
+}
+
+interface ReorderDistribution {
+    distributionType: "reorder";
+    quizId: number;
+    quizSlug: string;
+    quizName: string;
+    questionId: number;
+    questionTitle: string;
+    questionType: string;
+    totalResponses: number;
+    distinctAnswers: number;
+    options: null;
+    answers: null;
+    permutations: ReorderPermutation[];
+}
+
+type QuestionDistribution = ChoiceDistribution | WrittenDistribution | ReorderDistribution;
 
 interface ChartPoint {
     label: string;
@@ -94,7 +146,7 @@ interface AdminStatsPage {
     hardestQuestions: HardestQuestion[];
     hardestQuestionsByQuiz: HardestQuestionsByQuiz[];
     bestSellerPlayers: BestSeller[];
-    mcqDistribution: ChoiceDistribution | null;
+    mcqDistribution: QuestionDistribution | null;
     quizDifficultyChart: ChartPoint[];
     bestSellerChart: ChartPoint[];
     attendanceChart: ChartPoint[];
@@ -165,7 +217,7 @@ export const insightsApiSlice = createApi({
             query: ({ slug, ...req }) => `ostaz/insights/stats/quizzes/${slug}/questions/hardest${queryParamsFromRequest(req)}`,
         }),
 
-        getQuestionDistribution: build.query<ChoiceDistribution | null, number>({
+        getQuestionDistribution: build.query<QuestionDistribution | null, number>({
             query: (questionId) => `ostaz/insights/stats/questions/${questionId}/distribution`,
         }),
 
@@ -215,8 +267,13 @@ export type {
     HardestQuestion,
     HardestQuestionsByQuiz,
     BestSeller,
+    QuestionDistribution,
     ChoiceDistribution,
     ChoiceDistributionOption,
+    WrittenDistribution,
+    WrittenAnswerGroup,
+    ReorderDistribution,
+    ReorderPermutation,
     ChartPoint,
     AttemptedAllQuizUser,
 };
