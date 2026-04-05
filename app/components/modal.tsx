@@ -11,15 +11,15 @@ interface ModalProps {
     panelClassName?: string;
 }
 
-export default function Modal({open, onClose, footer, title, children, panelClassName} : ModalProps) {
+export default function Modal({ open, onClose, footer, title, children, panelClassName }: ModalProps) {
     return (
-        <Dialog open={open} onClose={onClose} className="relative z-30">
+        <Dialog open={open} onClose={onClose} className="relative z-100">
             <DialogBackdrop
                 transition
                 className="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
             />
 
-            <div className="fixed inset-0 z-30 w-screen overflow-y-auto">
+            <div className="fixed inset-0 z-100 w-screen overflow-y-auto">
                 <div className="flex min-h-full items-start justify-center px-3 py-3 text-center sm:px-6 sm:py-6">
                     <DialogPanel
                         transition
@@ -31,7 +31,7 @@ export default function Modal({open, onClose, footer, title, children, panelClas
                     >
                         <div>
                             <div>
-                                <If condition={!! title}>
+                                <If condition={!!title}>
                                     <DialogTitle as="h3" className="mb-2 text-base text-center font-semibold text-gray-900">
                                         {title}
                                     </DialogTitle>
